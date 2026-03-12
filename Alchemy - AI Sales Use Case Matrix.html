@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alchemy · Functional Use Case Matrix</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:           #f4f1ec;
+    --paper:        #ffffff;
+    --ink:          #16120d;
+    --ink-dim:      #3a3428;
+    --ink-muted:    #9a9080;
+    --rule:         #ddd8d0;
+    --rule-heavy:   #b8b0a4;
+    --gold:         #b8872a;
+    --gold-pale:    #f0d880;
+    --progression:  #1a5c3a;
+    --prog-bg:      #edf8f2;
+
+    --c-it:         #1a4a6e;  --c-it-bg:    #e8f2f9;  --c-it-mid:   #c8dff0;
+    --c-sec:        #6e1a1a;  --c-sec-bg:   #f9e8e8;  --c-sec-mid:  #f0c8c8;
+    --c-iam:        #3d1a6e;  --c-iam-bg:   #f0e8f9;  --c-iam-mid:  #d8c8f0;
+    --c-data:       #1a6e3a;  --c-data-bg:  #e8f9ee;  --c-data-mid: #c8f0d8;
+    --c-fin:        #6e4e1a;  --c-fin-bg:   #f9f2e8;  --c-fin-mid:  #f0dfc8;
+    --c-hr:         #1a6e6e;  --c-hr-bg:    #e8f9f9;  --c-hr-mid:   #c8f0f0;
+    --c-sales:      #6e2e1a;  --c-sales-bg: #f9eee8;  --c-sales-mid:#f0d4c8;
+    --c-exec:       #2a2a2a;  --c-exec-bg:  #f0f0ee;  --c-exec-mid: #d8d8d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    width: 1380px;
+    margin: 0 auto;
+    padding: 28px 32px 44px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2.5px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+  }
+  .brand-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+  .doc-badge {
+    display: inline-block;
+    background: var(--ink);
+    color: #f0e8d4;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 2px 9px;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .maturity-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 2px 9px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  h1 em { font-style: italic; font-weight: 400; }
+  .header-right {
+    text-align: right;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    line-height: 1.75;
+  }
+
+  /* INTRO */
+  .intro-band {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+    align-items: stretch;
+  }
+  .intro-note {
+    flex: 1;
+    background: var(--ink);
+    color: #e4dcd0;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    border-radius: 0 4px 4px 0;
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.65;
+  }
+  .intro-note strong { color: var(--gold-pale); font-weight: 600; }
+  .intro-note a { color: var(--gold-pale); text-decoration: underline; }
+
+  .section-key {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule-heavy);
+    border-radius: 6px;
+    flex-shrink: 0;
+    max-width: 680px;
+  }
+  .key-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+  .key-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .key-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+  /* MATRIX */
+  .matrix-wrap {
+    background: var(--paper);
+    border: 1px solid var(--rule-heavy);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* SECTOR SUPER-HEADER */
+  thead tr.sector-row th {
+    background: #0e0c09;
+    color: rgba(240,230,210,0.55);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  thead tr.sector-row th.fn-corner { background: #0e0c09; }
+  thead tr.sector-row th.pub-divider {
+    border-left: 2px solid rgba(180,140,50,0.55) !important;
+    color: rgba(240,210,140,0.7);
+  }
+  thead tr.sector-row th:last-child { border-right: none; }
+
+  /* INDUSTRY HEADER */
+  thead tr.ind-row th {
+    background: var(--ink);
+    color: #ede4d4;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 11px 8px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    line-height: 1.25;
+    vertical-align: middle;
+  }
+  thead tr.ind-row th.fn-corner {
+    text-align: left;
+    font-size: 9.5px;
+    opacity: 0.4;
+    padding-left: 14px;
+    letter-spacing: 0.14em;
+  }
+  thead tr.ind-row th.pub-divider { border-left: 2px solid rgba(180,140,50,0.4) !important; }
+  thead tr.ind-row th:last-child { border-right: none; }
+
+  /* FUNCTION HEADER ROWS */
+  tr.fn-row td { vertical-align: top; }
+  td.fn-label-cell {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    vertical-align: top;
+    padding: 11px 13px 10px;
+    border-right: 1px solid rgba(0,0,0,0.14);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  .fn-name { display: block; margin-bottom: 3px; }
+  .fn-partners {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    line-height: 1.4;
+  }
+
+  /* USE CASE CELLS */
+  td.uc-cell {
+    vertical-align: top;
+    padding: 10px 11px 9px;
+    border-right: 1px solid rgba(0,0,0,0.07);
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    font-size: 10.5px;
+    font-weight: 400;
+    line-height: 1.48;
+    color: var(--ink-dim);
+    position: relative;
+  }
+  td.uc-cell:last-child { border-right: none; }
+  td.uc-cell.pub-divider { border-left: 2px solid rgba(80,60,20,0.15) !important; }
+
+  /* Cell anatomy */
+  .uc-headline {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: inherit;
+    margin-bottom: 5px;
+    line-height: 1.2;
+  }
+  .uc-scenario {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+  .uc-progression {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 9.5px;
+    font-weight: 500;
+    color: var(--progression);
+    line-height: 1.4;
+    border-top: 1px solid rgba(26,92,58,0.2);
+    padding-top: 5px;
+    margin-top: 2px;
+  }
+  .prog-arrow {
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-top: 0px;
+    opacity: 0.7;
+  }
+  .uc-cite {
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--gold);
+    vertical-align: super;
+    line-height: 0;
+    text-decoration: none;
+    margin-left: 1px;
+  }
+  .uc-cite:hover { text-decoration: underline; }
+
+  /* Gap rows */
+  tr.gap-row td {
+    height: 5px;
+    background: var(--bg);
+    border: none;
+    padding: 0;
+  }
+
+  /* Section theming */
+  .s-it    { background: var(--c-it-bg);    color: var(--c-it); }
+  .s-sec   { background: var(--c-sec-bg);   color: var(--c-sec); }
+  .s-iam   { background: var(--c-iam-bg);   color: var(--c-iam); }
+  .s-data  { background: var(--c-data-bg);  color: var(--c-data); }
+  .s-fin   { background: var(--c-fin-bg);   color: var(--c-fin); }
+  .s-hr    { background: var(--c-hr-bg);    color: var(--c-hr); }
+  .s-sales { background: var(--c-sales-bg); color: var(--c-sales); }
+  .s-exec  { background: var(--c-exec-bg);  color: var(--c-exec); }
+
+  .s-it   td.fn-label-cell  { border-left: 4px solid var(--c-it);    border-right: 1px solid var(--c-it-mid); }
+  .s-sec  td.fn-label-cell  { border-left: 4px solid var(--c-sec);   border-right: 1px solid var(--c-sec-mid); }
+  .s-iam  td.fn-label-cell  { border-left: 4px solid var(--c-iam);   border-right: 1px solid var(--c-iam-mid); }
+  .s-data td.fn-label-cell  { border-left: 4px solid var(--c-data);  border-right: 1px solid var(--c-data-mid); }
+  .s-fin  td.fn-label-cell  { border-left: 4px solid var(--c-fin);   border-right: 1px solid var(--c-fin-mid); }
+  .s-hr   td.fn-label-cell  { border-left: 4px solid var(--c-hr);    border-right: 1px solid var(--c-hr-mid); }
+  .s-sales td.fn-label-cell { border-left: 4px solid var(--c-sales); border-right: 1px solid var(--c-sales-mid); }
+  .s-exec td.fn-label-cell  { border-left: 4px solid var(--c-exec);  border-right: 1px solid var(--c-exec-mid); }
+
+  .s-it   td.uc-cell { background: #f8fbfe; }
+  .s-sec  td.uc-cell { background: #fef8f8; }
+  .s-iam  td.uc-cell { background: #faf8fe; }
+  .s-data td.uc-cell { background: #f7fdfb; }
+  .s-fin  td.uc-cell { background: #fdfaf4; }
+  .s-hr   td.uc-cell { background: #f7fdfd; }
+  .s-sales td.uc-cell { background: #fdf8f6; }
+  .s-exec td.uc-cell { background: #fafaf9; }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid var(--rule-heavy);
+    padding-top: 13px;
+  }
+  .footer-text {
+    font-size: 10px;
+    color: var(--ink-muted);
+    line-height: 1.65;
+    font-weight: 300;
+    font-style: italic;
+  }
+  .footer-text a {
+    color: var(--gold);
+    font-style: normal;
+    font-weight: 600;
+    text-decoration: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .footer-text a:hover { text-decoration: underline; }
+  .footer-center {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="brand-tag">
+      <span class="doc-badge">DOC 3</span>
+      Alchemy Technology Group · AI Sales Intelligence Series
+      <span class="maturity-badge" style="margin-left:8px;">Early AI Maturity</span>
+    </div>
+    <h1>Functional <em>Use Case</em> Matrix</h1>
+  </div>
+  <div class="header-right">
+    Early Maturity Phase · Business Language · Field Sales Reference<br>
+    8 Business Functions × 8 Industry Verticals · Sourced &amp; Cited<br>
+    Confidential · Internal Use Only · March 2026
+  </div>
+</div>
+
+<!-- INTRO -->
+<div class="intro-band">
+  <div class="intro-note">
+    <strong>How to use:</strong> Find your prospect's industry across the top. Find their business function on the left. Each cell gives you a conversation-ready use case framed in business terms — what they stop doing manually, and what becomes possible. The green progression line shows where agentic AI takes them next, once the foundation is in place. Superscript numbers link to the <a href="doc3_appendix.html" target="_blank">Source Appendix</a> — open it for rep research, customer conversations, and proposal support.
+  </div>
+  <div class="section-key">
+    <span class="key-label">Functions</span>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-it)"></div>IT &amp; Infrastructure</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-sec)"></div>Security &amp; Compliance</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-iam)"></div>Identity &amp; Access</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-data)"></div>Data &amp; Analytics</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-fin)"></div>Finance &amp; Operations</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-hr)"></div>HR &amp; Workforce</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-sales)"></div>Sales &amp; Revenue Ops</div>
+    <div class="key-pill"><div class="key-dot" style="background:var(--c-exec)"></div>Executive &amp; C-Suite</div>
+  </div>
+</div>
+
+<!-- MATRIX -->
+<div class="matrix-wrap">
+<table>
+  <colgroup>
+    <col style="width:178px;">
+    <col><col><col><col><col><col><col><col>
+  </colgroup>
+  <thead>
+    <tr class="sector-row">
+      <th class="fn-corner"></th>
+      <th colspan="6">Commercial &amp; Private Sector</th>
+      <th class="pub-divider" colspan="2">Public Sector</th>
+    </tr>
+    <tr class="ind-row">
+      <th class="fn-corner">Business Function</th>
+      <th>Financial<br>Services</th>
+      <th>Healthcare &amp;<br>Life Sciences</th>
+      <th>Manufacturing<br>&amp; Energy</th>
+      <th>Technology<br>&amp; SaaS</th>
+      <th>Professional<br>Services</th>
+      <th>Retail &amp;<br>Consumer</th>
+      <th class="pub-divider">State &amp; Local<br>Government</th>
+      <th>Federal &amp;<br>Defense</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  <!-- ═══════════════════════════════════════════════
+       IT & INFRASTRUCTURE
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-it">
+    <td class="fn-label-cell">
+      <span class="fn-name">IT &amp; Infrastructure</span>
+      <span class="fn-partners">Nutanix · Microsoft · Palo Alto · ControlUp</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Reduce unplanned downtime</span>
+      <span class="uc-scenario">IT teams spend hours manually correlating alerts across systems before acting. AI surfaces the likely root cause before the outage becomes customer-facing.<a href="doc3_appendix.html#r1" class="uc-cite" target="_blank">[1]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic ops teams that self-heal routine incidents without human triage</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Keep clinical systems always-on</span>
+      <span class="uc-scenario">EHR and clinical app downtime directly affects patient care. AI-assisted monitoring flags degradation before staff notice, buying time to resolve before impact.<a href="doc3_appendix.html#r2" class="uc-cite" target="_blank">[2]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated remediation workflows triggered by AI monitoring without IT intervention</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Connect OT and IT visibility</span>
+      <span class="uc-scenario">Operational technology and business IT run in silos. AI bridges the gap, giving IT teams visibility into plant-floor systems that previously had no dashboards.<a href="doc3_appendix.html#r3" class="uc-cite" target="_blank">[3]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic maintenance scheduling driven by real-time OT and IT signal correlation</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Cut cloud spend waste</span>
+      <span class="uc-scenario">Engineering teams overprovision cloud resources because rightsizing is manual and time-consuming. AI continuously identifies idle capacity and flags savings opportunities.<a href="doc3_appendix.html#r4" class="uc-cite" target="_blank">[4]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Autonomous cloud optimization agents that resize and reallocate without tickets</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Standardize remote office IT</span>
+      <span class="uc-scenario">Distributed offices run inconsistent configurations that IT can't audit manually at scale. AI identifies drift from baseline and prioritizes what to fix first.<a href="doc3_appendix.html#r1" class="uc-cite" target="_blank">[1]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated configuration compliance enforcement across all locations without tickets</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Protect point-of-sale uptime</span>
+      <span class="uc-scenario">A POS outage during peak hours costs thousands per minute. AI detects early warning signals in infrastructure performance before the register goes dark.<a href="doc3_appendix.html#r2" class="uc-cite" target="_blank">[2]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic failover and self-healing for store-critical systems during high-traffic events</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Modernize aging infrastructure</span>
+      <span class="uc-scenario">Legacy systems require manual patching cycles that consume entire IT teams. AI prioritizes patching order based on risk exposure, cutting remediation time significantly.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated patch deployment and compliance reporting tied to state security frameworks</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Maintain STIG compliance continuously</span>
+      <span class="uc-scenario">Manual STIG audits happen quarterly at best, leaving exposure gaps between cycles. AI monitors configuration drift in real time and flags violations as they occur.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Continuous ATO readiness with agentic remediation tied to CMMC and NIST controls</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       SECURITY & COMPLIANCE
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-sec">
+    <td class="fn-label-cell">
+      <span class="fn-name">Security &amp; Compliance</span>
+      <span class="fn-partners">Palo Alto · Rapid7 · Varonis · CrowdStrike</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Stop alert fatigue from killing response time</span>
+      <span class="uc-scenario">SOC teams receive thousands of alerts daily and manually triage each one. AI filters noise, correlates signals, and surfaces only the incidents that require human judgment.<a href="doc3_appendix.html#r6" class="uc-cite" target="_blank">[6]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic SOC playbooks that auto-contain known threat patterns before analyst involvement</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Protect patient data from insider risk</span>
+      <span class="uc-scenario">HIPAA violations frequently originate from internal access — employees viewing records they shouldn't. AI detects unusual access patterns before a breach becomes reportable.<a href="doc3_appendix.html#r7" class="uc-cite" target="_blank">[7]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated access revocation and audit trail generation tied to compliance reporting</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Detect threats across OT environments</span>
+      <span class="uc-scenario">Industrial control systems were never designed with cybersecurity in mind and are rarely monitored. AI extends visibility into OT networks that traditional security tools can't reach.<a href="doc3_appendix.html#r8" class="uc-cite" target="_blank">[8]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Unified IT/OT threat response with agentic isolation of compromised industrial assets</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Govern shadow SaaS and AI tool sprawl</span>
+      <span class="uc-scenario">Employees adopt new SaaS tools and AI applications without IT approval, creating ungoverned data flows. AI discovers unauthorized apps and quantifies the data exposure risk.<a href="doc3_appendix.html#r9" class="uc-cite" target="_blank">[9]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated SaaS governance agents that classify, flag, and quarantine unsanctioned tools</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Protect client data across engagements</span>
+      <span class="uc-scenario">Client confidentiality is the foundation of every engagement. AI monitors for sensitive data leaving through email, file shares, or personal devices and alerts before the breach occurs.<a href="doc3_appendix.html#r6" class="uc-cite" target="_blank">[6]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic DLP enforcement that adapts to engagement-specific data classification rules</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Meet PCI-DSS without a dedicated compliance team</span>
+      <span class="uc-scenario">PCI audit prep is manual, expensive, and annual — a snapshot that misses year-round gaps. AI monitors cardholder data environments continuously and generates audit-ready evidence automatically.<a href="doc3_appendix.html#r7" class="uc-cite" target="_blank">[7]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Continuous compliance posture scoring with automated evidence collection for QSA reviews</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Respond to ransomware faster</span>
+      <span class="uc-scenario">State and local agencies are among the most-targeted ransomware victims and typically have the smallest security teams. AI compresses detection-to-containment time from hours to minutes.<a href="doc3_appendix.html#r8" class="uc-cite" target="_blank">[8]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated incident response playbooks that isolate and recover systems without manual steps</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Accelerate ATO and continuous monitoring</span>
+      <span class="uc-scenario">Authorization to Operate processes are document-heavy and slow. AI continuously gathers evidence against control frameworks, compressing ATO timelines and enabling ongoing monitoring.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic control validation that updates ATO packages in real time as configurations change</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       IDENTITY & ACCESS MANAGEMENT
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-iam">
+    <td class="fn-label-cell">
+      <span class="fn-name">Identity &amp; Access Mgmt</span>
+      <span class="fn-partners">Okta · CyberArk · Palo Alto</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Eliminate standing privileged access</span>
+      <span class="uc-scenario">Permanent admin credentials are the most common attack vector in financial breaches. AI enforces just-in-time access, granting elevated permissions only when needed and revoking them automatically.<a href="doc3_appendix.html#r10" class="uc-cite" target="_blank">[10]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic access lifecycle management where AI requests, grants, and revokes access without tickets</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Speed up clinician access provisioning</span>
+      <span class="uc-scenario">New clinical staff wait days for system access because provisioning is manual and approval chains are slow. AI automates role-based provisioning tied to HR onboarding workflows.<a href="doc3_appendix.html#r11" class="uc-cite" target="_blank">[11]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Zero-touch onboarding where AI provisions, verifies, and certifies access before day one</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Manage contractor and third-party access</span>
+      <span class="uc-scenario">External contractors regularly access plant systems with credentials that are rarely reviewed or revoked. AI tracks third-party access continuously and flags dormant or excessive permissions.<a href="doc3_appendix.html#r10" class="uc-cite" target="_blank">[10]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated contractor lifecycle management with agentic off-boarding on contract expiration</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Govern machine and non-human identities</span>
+      <span class="uc-scenario">In SaaS environments, APIs, bots, and service accounts outnumber human users. AI discovers and classifies non-human identities that have never been inventoried, let alone governed.<a href="doc3_appendix.html#r12" class="uc-cite" target="_blank">[12]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic machine identity governance that rotates credentials and enforces least-privilege automatically</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Enforce least-privilege across client environments</span>
+      <span class="uc-scenario">Consultants often carry broader access than their current engagement requires. AI continuously certifies active permissions against current role and flags excess access for immediate review.<a href="doc3_appendix.html#r11" class="uc-cite" target="_blank">[11]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Per-engagement access profiles managed by AI, scoped and revoked automatically at project close</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Secure seasonal workforce access at scale</span>
+      <span class="uc-scenario">Retail organizations add and remove thousands of seasonal employees every year. Manual provisioning and deprovisioning at that scale creates access gaps that persist long after workers leave.<a href="doc3_appendix.html#r10" class="uc-cite" target="_blank">[10]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated mass provisioning and off-boarding tied to HR system triggers with zero manual steps</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Meet zero trust mandates without a large IAM team</span>
+      <span class="uc-scenario">Federal and state zero trust directives require continuous identity verification that most agencies can't staff manually. AI enforces adaptive authentication policies across all user types without additional headcount.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic zero trust enforcement that adapts access policies based on real-time risk signals</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Enforce PIV and CAC compliance at scale</span>
+      <span class="uc-scenario">Managing smart card authentication across large, distributed federal workforces is operationally complex and audit-intensive. AI automates certificate lifecycle management and flags compliance gaps before audits.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Continuous identity assurance platform with agentic certificate rotation and anomaly detection</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       DATA & ANALYTICS
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-data">
+    <td class="fn-label-cell">
+      <span class="fn-name">Data &amp; Analytics</span>
+      <span class="fn-partners">Snowflake · Varonis · Glean · Microsoft Purview</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Find answers across siloed financial data</span>
+      <span class="uc-scenario">Analysts spend hours pulling data from multiple systems before they can answer a single question. AI-powered search surfaces answers from every connected data source in seconds.<a href="doc3_appendix.html#r13" class="uc-cite" target="_blank">[13]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic data agents that compile, reconcile, and deliver multi-source financial reports automatically</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Know where sensitive patient data lives</span>
+      <span class="uc-scenario">PHI is spread across clinical apps, shared drives, and email attachments that IT has never fully mapped. AI classifies and catalogs sensitive data across every system, making HIPAA audits faster and less painful.<a href="doc3_appendix.html#r7" class="uc-cite" target="_blank">[7]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Automated data governance with agentic remediation of misclassified or overexposed PHI</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Connect operational data to business decisions</span>
+      <span class="uc-scenario">Plant-floor data rarely reaches the people making purchasing and scheduling decisions. AI pipelines operational metrics into business dashboards that managers can actually use without a data team.<a href="doc3_appendix.html#r3" class="uc-cite" target="_blank">[3]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic reporting that proactively surfaces supply chain and production anomalies to decision-makers</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Make product usage data actionable</span>
+      <span class="uc-scenario">Product teams sit on enormous amounts of usage data but lack the bandwidth to analyze it consistently. AI surfaces the patterns that matter — churn signals, feature adoption gaps, expansion triggers — without manual querying.<a href="doc3_appendix.html#r14" class="uc-cite" target="_blank">[14]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic product intelligence that pushes insights to account teams and CSMs in real time</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Surface institutional knowledge before it walks out the door</span>
+      <span class="uc-scenario">Firms lose critical client and project knowledge every time a senior person leaves. AI indexes and organizes institutional knowledge across documents, emails, and systems so it stays findable regardless of tenure.<a href="doc3_appendix.html#r13" class="uc-cite" target="_blank">[13]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic knowledge management that proactively surfaces relevant precedents at the start of each engagement</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Turn customer data into decisions at the shelf</span>
+      <span class="uc-scenario">Buying patterns, inventory signals, and customer preferences sit in separate systems that merchandising teams can't easily connect. AI unifies those signals into actionable recommendations without a data science team.<a href="doc3_appendix.html#r14" class="uc-cite" target="_blank">[14]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic merchandising that adjusts pricing, placement, and promotions based on real-time demand signals</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Make public records and case data searchable</span>
+      <span class="uc-scenario">Agency staff spend significant time locating case files, permit records, and historical documents stored across disconnected systems. AI search eliminates the manual lookup and gives staff answers in seconds.<a href="doc3_appendix.html#r15" class="uc-cite" target="_blank">[15]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic case management assistants that compile case history, flag deadlines, and draft correspondence</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Connect classified and unclassified data responsibly</span>
+      <span class="uc-scenario">Analysts working across classification levels waste hours moving between systems to assemble a complete operational picture. AI surfaces relevant data within each classification level without cross-domain violations.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic intelligence synthesis within approved classification boundaries, reducing analyst burden</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       FINANCE & OPERATIONS
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-fin">
+    <td class="fn-label-cell">
+      <span class="fn-name">Finance &amp; Operations</span>
+      <span class="fn-partners">Snowflake · Glean · Microsoft</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Automate regulatory reporting prep</span>
+      <span class="uc-scenario">Compliance teams rebuild the same reports every quarter by hand, pulling from multiple systems under deadline pressure. AI assembles the data, flags anomalies, and drafts the report structure automatically.<a href="doc3_appendix.html#r16" class="uc-cite" target="_blank">[16]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic reporting workflows that submit compliant filings with minimal human review</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Speed up claims processing and reconciliation</span>
+      <span class="uc-scenario">Claims teams manually review and match documents that should be handled automatically. AI processes routine claims end-to-end, flagging only the exceptions that genuinely need human judgment.<a href="doc3_appendix.html#r17" class="uc-cite" target="_blank">[17]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Fully agentic claims lifecycle from intake to payment, with human oversight on edge cases only</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Eliminate manual purchase order matching</span>
+      <span class="uc-scenario">Three-way matching of POs, receipts, and invoices is done manually by AP teams, creating backlogs and payment errors. AI handles the routine matches and flags the exceptions for human review.<a href="doc3_appendix.html#r16" class="uc-cite" target="_blank">[16]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic AP processing that negotiates payment terms and optimizes cash flow automatically</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Get to financial close faster every month</span>
+      <span class="uc-scenario">Month-end close is a manual sprint that consumes finance teams for days. AI identifies reconciliation gaps in real time throughout the month, so close is a confirmation rather than a discovery process.<a href="doc3_appendix.html#r16" class="uc-cite" target="_blank">[16]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Continuous close with agentic reconciliation running daily, reducing month-end from days to hours</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Stop revenue leakage from unbilled time</span>
+      <span class="uc-scenario">Billable hours are routinely lost because time entry is manual and inconsistent. AI analyzes calendar, email, and system activity to surface unbilled work that would otherwise go uncaptured.<a href="doc3_appendix.html#r17" class="uc-cite" target="_blank">[17]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic billing capture that drafts time entries automatically from activity signals across every system</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Reduce inventory write-offs from forecast error</span>
+      <span class="uc-scenario">Buyers rely on historical averages that miss seasonal signals and trend shifts. AI incorporates real-time demand signals to improve forecast accuracy and reduce overstock that ends up marked down or discarded.<a href="doc3_appendix.html#r14" class="uc-cite" target="_blank">[14]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic demand planning that adjusts orders automatically based on live sell-through and external signals</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Simplify grants management and compliance tracking</span>
+      <span class="uc-scenario">Grant administrators manually track spending, deadlines, and reporting requirements across multiple federal funding sources. AI centralizes tracking and generates compliant progress reports automatically.<a href="doc3_appendix.html#r15" class="uc-cite" target="_blank">[15]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic grant compliance that monitors spending, flags variances, and files reports without manual assembly</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Accelerate contract and acquisition workflows</span>
+      <span class="uc-scenario">Federal procurement is document-intensive and slow, with contracting officers manually assembling packages across dozens of required forms. AI pre-populates standard documents and flags errors before submission.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic acquisition support that assembles compliant packages and tracks milestones without manual follow-up</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       HR & WORKFORCE
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-hr">
+    <td class="fn-label-cell">
+      <span class="fn-name">HR &amp; Workforce</span>
+      <span class="fn-partners">Glean · Okta · Microsoft</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Cut new hire time-to-productivity</span>
+      <span class="uc-scenario">New employees in regulated industries spend their first weeks navigating policy documents, compliance training, and disconnected onboarding systems. AI delivers the right information at the right moment, cutting ramp time significantly.<a href="doc3_appendix.html#r18" class="uc-cite" target="_blank">[18]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic onboarding that personalizes the new hire journey and automatically routes tasks to the right approvers</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Reduce credentialing delays for clinical staff</span>
+      <span class="uc-scenario">Credentialing new clinical hires manually takes weeks and delays their ability to see patients. AI tracks document collection, flags missing items, and routes approvals automatically to compress the process.<a href="doc3_appendix.html#r11" class="uc-cite" target="_blank">[11]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Fully automated credentialing lifecycle with agentic follow-up on outstanding documentation</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Keep safety certifications current across the workforce</span>
+      <span class="uc-scenario">Tracking mandatory safety training and certification renewals for hundreds of plant workers is a manual compliance burden. AI monitors certification status and automatically triggers renewal workflows before expiration.<a href="doc3_appendix.html#r18" class="uc-cite" target="_blank">[18]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic workforce compliance that schedules, assigns, and confirms training without HR intervention</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Answer HR questions without creating HR tickets</span>
+      <span class="uc-scenario">HR teams spend significant time answering policy questions that are already documented. AI gives employees instant, accurate answers from the employee handbook, benefits guides, and policy documents — without a ticket.<a href="doc3_appendix.html#r13" class="uc-cite" target="_blank">[13]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic HR assistant that handles benefits enrollment, PTO requests, and policy lookups without human handling</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Match the right people to the right engagements</span>
+      <span class="uc-scenario">Resource allocation in professional services is often done by relationship and memory rather than skills data. AI matches consultant skills, availability, and past project experience to open engagement requirements in seconds.<a href="doc3_appendix.html#r18" class="uc-cite" target="_blank">[18]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic staffing that proactively identifies bench talent and proposes matches before gaps become urgent</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Automate seasonal hiring and onboarding at scale</span>
+      <span class="uc-scenario">Retail HR teams manually process hundreds of seasonal applications and onboarding packets every quarter. AI screens applications, schedules interviews, and triggers onboarding workflows automatically.<a href="doc3_appendix.html#r18" class="uc-cite" target="_blank">[18]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Fully agentic seasonal workforce pipeline from application to first-day-ready without recruiter involvement</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Simplify civil service onboarding and compliance</span>
+      <span class="uc-scenario">Government HR teams manage complex onboarding requirements including background checks, clearances, and mandatory training that vary by role. AI tracks every requirement and flags gaps before the employee starts.<a href="doc3_appendix.html#r15" class="uc-cite" target="_blank">[15]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic HR workflows that coordinate across departments and automatically verify compliance before day one</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Accelerate security clearance tracking and renewals</span>
+      <span class="uc-scenario">Security clearance timelines are notoriously slow, and manually tracking renewal deadlines across a large workforce creates risk. AI monitors clearance status and initiates renewal workflows well before gaps occur.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic clearance lifecycle management with automated document collection and status reporting</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       SALES & REVENUE OPS
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-sales">
+    <td class="fn-label-cell">
+      <span class="fn-name">Sales &amp; Revenue Ops</span>
+      <span class="fn-partners">Glean · Snowflake · Microsoft</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Give advisors complete client context before every call</span>
+      <span class="uc-scenario">Relationship managers review notes, emails, and account history across multiple systems before client meetings. AI assembles a complete pre-meeting brief in seconds from every connected data source.<a href="doc3_appendix.html#r13" class="uc-cite" target="_blank">[13]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic client intelligence that proactively surfaces next best action and cross-sell signals before outreach</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Shorten the sales cycle for complex solution sales</span>
+      <span class="uc-scenario">Healthcare sales cycles involve clinical, financial, and IT stakeholders who each need different information. AI identifies which materials resonate with each buyer type and helps reps move every stakeholder simultaneously.<a href="doc3_appendix.html#r19" class="uc-cite" target="_blank">[19]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic deal rooms that deliver personalized content to each stakeholder automatically throughout the cycle</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Reduce time spent building proposals and quotes</span>
+      <span class="uc-scenario">Complex product and service quotes require pulling specs, pricing, and terms from multiple systems. AI assembles the first draft of a proposal in minutes, letting reps focus on customization rather than assembly.<a href="doc3_appendix.html#r19" class="uc-cite" target="_blank">[19]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic CPQ that generates, prices, and submits quotes automatically based on deal parameters</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Find the right content for every deal stage</span>
+      <span class="uc-scenario">Reps waste time searching for case studies, battle cards, and competitive intel that marketing has already created. AI surfaces the most relevant content for each deal based on industry, stage, and buyer role.<a href="doc3_appendix.html#r13" class="uc-cite" target="_blank">[13]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic sales enablement that pushes the right content to reps automatically as deals progress</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Build winning proposals faster</span>
+      <span class="uc-scenario">RFP responses require pulling from past proposals, case studies, and subject matter experts who are always busy. AI searches the full library of prior work and assembles a first-draft response in hours rather than days.<a href="doc3_appendix.html#r19" class="uc-cite" target="_blank">[19]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic RFP response that drafts, assigns SME sections, and tracks completion without coordinator involvement</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Identify upsell opportunities before the renewal conversation</span>
+      <span class="uc-scenario">Account teams rely on gut feel and relationship history to identify expansion opportunities. AI analyzes purchase patterns, support interactions, and engagement signals to surface upsell candidates before they start looking elsewhere.<a href="doc3_appendix.html#r14" class="uc-cite" target="_blank">[14]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic account growth engine that proactively triggers outreach workflows when expansion signals appear</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Respond to RFPs and solicitations faster</span>
+      <span class="uc-scenario">Government sales teams spend weeks manually assembling compliance matrices and past performance write-ups for each solicitation. AI drafts the standard sections from prior submissions, freeing the team to focus on differentiators.<a href="doc3_appendix.html#r19" class="uc-cite" target="_blank">[19]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic proposal factory that tracks solicitations, flags relevant opportunities, and assembles compliant responses</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Track contract vehicles and task order opportunities</span>
+      <span class="uc-scenario">Managing multiple IDIQ vehicles, GWACs, and task order pipelines simultaneously is administratively overwhelming. AI monitors vehicle activity, tracks ceiling utilization, and flags task order opportunities before deadlines close.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic contract vehicle management that proactively identifies and pursues task order opportunities</div>
+    </td>
+  </tr>
+  <tr class="gap-row"><td colspan="9"></td></tr>
+
+  <!-- ═══════════════════════════════════════════════
+       EXECUTIVE & C-SUITE
+  ═══════════════════════════════════════════════ -->
+  <tr class="fn-row s-exec">
+    <td class="fn-label-cell">
+      <span class="fn-name">Executive &amp; C-Suite</span>
+      <span class="fn-partners">Full Portfolio · Strategic AI Vision · Budget &amp; Outcomes</span>
+    </td>
+
+    <!-- Financial Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Prove AI ROI before the board asks for it</span>
+      <span class="uc-scenario">Financial services executives face increasing pressure to demonstrate measurable returns on AI investments. Establishing baseline metrics and a governed AI program early creates the evidence trail that satisfies regulators and boards.<a href="doc3_appendix.html#r16" class="uc-cite" target="_blank">[16]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic AI performance monitoring that continuously tracks and reports ROI against defined business outcomes</div>
+    </td>
+
+    <!-- Healthcare -->
+    <td class="uc-cell">
+      <span class="uc-headline">Reduce operational cost without reducing care quality</span>
+      <span class="uc-scenario">Healthcare executives are under relentless pressure to cut administrative overhead while protecting clinical outcomes. AI finds the administrative waste — not the clinical capacity — and eliminates it systematically.<a href="doc3_appendix.html#r17" class="uc-cite" target="_blank">[17]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic operations management that optimizes staffing, scheduling, and resource allocation continuously</div>
+    </td>
+
+    <!-- Manufacturing & Energy -->
+    <td class="uc-cell">
+      <span class="uc-headline">Build a case for AI investment across the plant</span>
+      <span class="uc-scenario">Operations leaders need to show a clear return before committing capital to AI infrastructure. Starting with a targeted use case that delivers a measurable result in 90 days creates the internal proof point for broader investment.<a href="doc3_appendix.html#r3" class="uc-cite" target="_blank">[3]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Enterprise AI platform connecting operational, supply chain, and financial data into a single decision layer</div>
+    </td>
+
+    <!-- Technology & SaaS -->
+    <td class="uc-cell">
+      <span class="uc-headline">Turn AI from a cost into a competitive moat</span>
+      <span class="uc-scenario">Technology leaders who govern AI well — with clean data, strong identity controls, and measurable outcomes — build a capability that competitors can't replicate quickly. The window to establish that advantage is narrow.<a href="doc3_appendix.html#r9" class="uc-cite" target="_blank">[9]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic product and operational platform that makes AI a defensible capability embedded in every workflow</div>
+    </td>
+
+    <!-- Professional Services -->
+    <td class="uc-cell">
+      <span class="uc-headline">Protect margin while scaling headcount</span>
+      <span class="uc-scenario">Growth in professional services traditionally requires proportional headcount growth. AI changes that ratio — administrative and knowledge work scales with AI, while billable capacity stays focused on client work.<a href="doc3_appendix.html#r20" class="uc-cite" target="_blank">[20]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic delivery model where AI handles non-billable work across every practice, expanding margin per head</div>
+    </td>
+
+    <!-- Retail & Consumer -->
+    <td class="uc-cell">
+      <span class="uc-headline">Compete on speed and personalization, not just price</span>
+      <span class="uc-scenario">Retail executives know that price competition is a race to the bottom. AI enables personalization, responsiveness, and operational efficiency that creates loyalty without eroding margin.<a href="doc3_appendix.html#r14" class="uc-cite" target="_blank">[14]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic customer experience platform that personalizes every touchpoint and optimizes every interaction</div>
+    </td>
+
+    <!-- State & Local Gov -->
+    <td class="uc-cell pub-divider">
+      <span class="uc-headline">Do more with flat or shrinking budgets</span>
+      <span class="uc-scenario">Government executives face constituent demands that grow faster than appropriations. AI reduces the administrative burden on every department, effectively expanding capacity without adding headcount or budget.<a href="doc3_appendix.html#r15" class="uc-cite" target="_blank">[15]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Agentic government operations platform delivering citizen services faster with fewer manual touchpoints</div>
+    </td>
+
+    <!-- Federal & Defense -->
+    <td class="uc-cell">
+      <span class="uc-headline">Lead the mission AI mandate, not just comply with it</span>
+      <span class="uc-scenario">Federal leaders are under executive mandate to adopt AI responsibly and measurably. Those who govern it proactively — with documented outcomes and security controls — are positioned as leaders, not laggards, in the next budget cycle.<a href="doc3_appendix.html#r5" class="uc-cite" target="_blank">[5]</a></span>
+      <div class="uc-progression"><span class="prog-arrow">→</span>Responsible AI platform with agentic audit trails, outcome tracking, and continuous compliance reporting</div>
+    </td>
+  </tr>
+
+  </tbody>
+</table>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-text">
+    Early AI Maturity phase · Advanced maturity version in development.<br>
+    Role-level supplementary matrices available per function on request.<br>
+    <a href="doc3_appendix.html" target="_blank">→ Open Source Appendix</a>
+  </div>
+  <div class="footer-center">
+    Alchemy Technology Group · AI Sales Intelligence Series · Doc 3 of 3<br>
+    8 Functions × 8 Verticals · 64 Use Cases · 20 Sources
+  </div>
+  <div class="footer-text" style="text-align:right;">
+    Desert Den Consulting for Alchemy Technology Group<br>
+    March 2026 · Confidential · Internal Use Only
+  </div>
+</div>
+
+</body>
+</html>

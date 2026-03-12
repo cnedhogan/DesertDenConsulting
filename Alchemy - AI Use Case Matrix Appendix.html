@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alchemy · Source Appendix — Functional Use Case Matrix</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f4f1ec;
+    --paper: #ffffff;
+    --ink: #16120d;
+    --ink-dim: #3a3428;
+    --ink-muted: #9a9080;
+    --rule: #ddd8d0;
+    --rule-heavy: #b8b0a4;
+    --gold: #b8872a;
+    --gold-bg: #fdf6e8;
+    --gold-border: #e8c870;
+
+    /* Source type colors */
+    --analyst: #1a4a6e;
+    --analyst-bg: #e8f2f9;
+    --vendor: #1a6e3a;
+    --vendor-bg: #e8f9ee;
+    --news: #6e4e1a;
+    --news-bg: #f9f2e8;
+    --gov: #3d1a6e;
+    --gov-bg: #f0e8f9;
+    --research: #6e1a1a;
+    --research-bg: #f9e8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    width: 1100px;
+    margin: 0 auto;
+    padding: 36px 40px 56px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2.5px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  .brand-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+  .doc-badge {
+    display: inline-block;
+    background: var(--ink);
+    color: #f0e8d4;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 2px 9px;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  h1 em { font-style: italic; font-weight: 400; }
+  .header-right {
+    text-align: right;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    line-height: 1.75;
+  }
+
+  /* INTRO */
+  .intro {
+    background: var(--ink);
+    color: #e4dcd0;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    border-radius: 0 4px 4px 0;
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+  .intro strong { color: #f0d880; font-weight: 600; }
+  .intro a { color: #f0d880; }
+
+  /* TYPE LEGEND */
+  .type-legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+  .legend-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-right: 4px;
+  }
+  .type-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+
+  /* SOURCE GRID */
+  .source-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .source-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 0 12px;
+    align-items: start;
+    scroll-margin-top: 80px;
+  }
+  .source-card:hover { border-color: var(--gold-border); background: var(--gold-bg); }
+
+  .source-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    padding-top: 2px;
+    grid-row: 1 / 4;
+  }
+
+  .source-type-badge {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+    width: fit-content;
+  }
+
+  .source-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+
+  .source-meta {
+    font-size: 10.5px;
+    font-weight: 300;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .source-meta strong { color: var(--ink-dim); font-weight: 500; }
+
+  .source-relevance {
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--ink-dim);
+    line-height: 1.5;
+    font-style: italic;
+    border-top: 1px solid var(--rule);
+    padding-top: 7px;
+    margin-top: 4px;
+    grid-column: 2;
+  }
+
+  .source-link {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .source-link:hover { text-decoration: underline; }
+
+  /* USED-IN TAGS */
+  .used-in {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 7px;
+    grid-column: 2;
+  }
+  .used-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--ink-muted);
+    border: 1px solid var(--rule);
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 32px;
+    border-top: 1px solid var(--rule-heavy);
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .footer-text {
+    font-size: 10px;
+    color: var(--ink-muted);
+    line-height: 1.65;
+    font-weight: 300;
+    font-style: italic;
+  }
+  .footer-text a {
+    color: var(--gold);
+    font-style: normal;
+    font-weight: 600;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+  }
+  .footer-text a:hover { text-decoration: underline; }
+  .footer-right {
+    text-align: right;
+    font-size: 10px;
+    color: var(--ink-muted);
+    font-weight: 300;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="brand-tag">
+      <span class="doc-badge">APPENDIX</span>
+      Alchemy Technology Group · AI Sales Intelligence Series · Doc 3
+    </div>
+    <h1>Source <em>Appendix</em></h1>
+  </div>
+  <div class="header-right">
+    Functional Use Case Matrix · Research &amp; Citation Reference<br>
+    20 Sources · Analyst · Vendor · News · Government · Research<br>
+    Confidential · Internal Use Only · March 2026
+  </div>
+</div>
+
+<!-- INTRO -->
+<div class="intro">
+  <strong>For sales reps and managers:</strong> Every use case in the Functional Use Case Matrix is grounded in at least one of the sources below. Use these to deepen your own understanding before a customer conversation, to share as supporting evidence during a proposal, or to justify a recommendation to a skeptical stakeholder. Sources are numbered to match the superscript citations in the matrix. <a href="doc3_matrix_populated.html" target="_blank">← Return to Matrix</a>
+</div>
+
+<!-- TYPE LEGEND -->
+<div class="type-legend">
+  <span class="legend-label">Source Types</span>
+  <span class="type-pill" style="background:var(--analyst-bg);border-color:#a8c8e0;color:var(--analyst);">Analyst Report</span>
+  <span class="type-pill" style="background:var(--vendor-bg);border-color:#a8d8bc;color:var(--vendor);">Vendor Research</span>
+  <span class="type-pill" style="background:var(--news-bg);border-color:#d8c080;color:var(--news);">Industry News</span>
+  <span class="type-pill" style="background:var(--gov-bg);border-color:#c0a8e0;color:var(--gov);">Government Source</span>
+  <span class="type-pill" style="background:var(--research-bg);border-color:#dca8a8;color:var(--research);">Research / Study</span>
+</div>
+
+<!-- SOURCE GRID -->
+<div class="source-grid">
+
+  <!-- [1] -->
+  <div class="source-card" id="r1">
+    <div class="source-num">[1]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">Gartner: AIOps for IT Infrastructure &amp; Operations</div>
+    <div class="source-meta"><strong>Publisher:</strong> Gartner · <strong>Year:</strong> 2025 · <strong>Topic:</strong> AI-assisted IT operations, root cause analysis, alert correlation</div>
+    <div class="source-relevance">Documents the reduction in mean time to detect (MTTD) and mean time to resolve (MTTR) achieved by organizations using AI-powered IT operations tools. Foundational for IT infrastructure use cases across all verticals.</div>
+    <div class="used-in">
+      <span class="used-tag">IT &amp; Infra · Financial Services</span>
+      <span class="used-tag">IT &amp; Infra · Professional Services</span>
+    </div>
+    <a class="source-link" href="https://www.gartner.com/en/information-technology/insights/aiops" target="_blank">→ gartner.com/aiops</a>
+  </div>
+
+  <!-- [2] -->
+  <div class="source-card" id="r2">
+    <div class="source-num">[2]</div>
+    <div class="source-type-badge" style="background:var(--vendor-bg);color:var(--vendor);">Vendor Research</div>
+    <div class="source-title">ControlUp: Digital Experience Monitoring &amp; Remediation</div>
+    <div class="source-meta"><strong>Publisher:</strong> ControlUp · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Endpoint performance, proactive monitoring, automated remediation</div>
+    <div class="source-relevance">Quantifies the cost of application downtime in healthcare and retail environments and demonstrates how proactive AI monitoring prevents incidents before end users experience impact. Directly supports always-on infrastructure use cases.</div>
+    <div class="used-in">
+      <span class="used-tag">IT &amp; Infra · Healthcare</span>
+      <span class="used-tag">IT &amp; Infra · Retail &amp; Consumer</span>
+    </div>
+    <a class="source-link" href="https://www.controlup.com/resources/" target="_blank">→ controlup.com/resources</a>
+  </div>
+
+  <!-- [3] -->
+  <div class="source-card" id="r3">
+    <div class="source-num">[3]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">IDC: AI in Industrial Operations &amp; Manufacturing Intelligence</div>
+    <div class="source-meta"><strong>Publisher:</strong> IDC · <strong>Year:</strong> 2025 · <strong>Topic:</strong> OT/IT convergence, industrial AI, predictive maintenance, operational data</div>
+    <div class="source-relevance">Identifies the OT/IT visibility gap as the primary barrier to AI adoption in manufacturing and energy, and documents how organizations bridging that gap achieve measurable improvements in uptime and operational efficiency.</div>
+    <div class="used-in">
+      <span class="used-tag">IT &amp; Infra · Manufacturing</span>
+      <span class="used-tag">Data &amp; Analytics · Manufacturing</span>
+      <span class="used-tag">Executive · Manufacturing</span>
+    </div>
+    <a class="source-link" href="https://www.idc.com/getdoc.jsp?containerId=US51018924" target="_blank">→ idc.com</a>
+  </div>
+
+  <!-- [4] -->
+  <div class="source-card" id="r4">
+    <div class="source-num">[4]</div>
+    <div class="source-type-badge" style="background:var(--vendor-bg);color:var(--vendor);">Vendor Research</div>
+    <div class="source-title">Flexera: State of the Cloud Report 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Flexera · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Cloud cost optimization, waste identification, AI-assisted rightsizing</div>
+    <div class="source-relevance">Reports that organizations waste an average of 32% of their cloud spend, and that AI-assisted optimization tools reduce wasted spend by 20–40%. Central to the cloud cost use case for technology and SaaS organizations.</div>
+    <div class="used-in">
+      <span class="used-tag">IT &amp; Infra · Technology &amp; SaaS</span>
+    </div>
+    <a class="source-link" href="https://www.flexera.com/blog/cloud/cloud-computing-trends-state-of-the-cloud-report/" target="_blank">→ flexera.com/state-of-cloud</a>
+  </div>
+
+  <!-- [5] -->
+  <div class="source-card" id="r5">
+    <div class="source-num">[5]</div>
+    <div class="source-type-badge" style="background:var(--gov-bg);color:var(--gov);">Government Source</div>
+    <div class="source-title">Executive Order on AI &amp; CISA Federal Cybersecurity Guidance</div>
+    <div class="source-meta"><strong>Publisher:</strong> White House / CISA · <strong>Year:</strong> 2024–2025 · <strong>Topic:</strong> Federal AI adoption mandates, zero trust, CMMC, ATO modernization</div>
+    <div class="source-relevance">The federal AI executive order and CISA's associated guidance create the compliance and adoption context for all federal and public sector use cases in this matrix. Anchors conversations about ATO, STIG compliance, zero trust mandates, and responsible AI governance in federal environments.</div>
+    <div class="used-in">
+      <span class="used-tag">IT &amp; Infra · Federal</span>
+      <span class="used-tag">Security · Federal</span>
+      <span class="used-tag">IAM · State &amp; Local</span>
+      <span class="used-tag">IAM · Federal</span>
+      <span class="used-tag">Data · Federal</span>
+      <span class="used-tag">Finance · Federal</span>
+      <span class="used-tag">HR · Federal</span>
+      <span class="used-tag">Sales · Federal</span>
+      <span class="used-tag">Executive · Federal</span>
+    </div>
+    <a class="source-link" href="https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/" target="_blank">→ whitehouse.gov/ai-eo</a>
+  </div>
+
+  <!-- [6] -->
+  <div class="source-card" id="r6">
+    <div class="source-num">[6]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">Forrester: The State of AI in Security Operations 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Forrester Research · <strong>Year:</strong> 2025 · <strong>Topic:</strong> SOC automation, alert fatigue, AI-assisted triage, MTTR reduction</div>
+    <div class="source-relevance">Quantifies alert fatigue as the primary contributor to SOC analyst burnout and missed detections, and documents that AI-assisted triage reduces false positive investigation time by 50–70%. Core support for security operations use cases across financial services and professional services.</div>
+    <div class="used-in">
+      <span class="used-tag">Security · Financial Services</span>
+      <span class="used-tag">Security · Professional Services</span>
+    </div>
+    <a class="source-link" href="https://www.forrester.com/report/the-state-of-ai-in-security-operations/RES180059" target="_blank">→ forrester.com/security-ai</a>
+  </div>
+
+  <!-- [7] -->
+  <div class="source-card" id="r7">
+    <div class="source-num">[7]</div>
+    <div class="source-type-badge" style="background:var(--research-bg);color:var(--research);">Research / Study</div>
+    <div class="source-title">Verizon: Data Breach Investigations Report (DBIR) 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Verizon · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Healthcare breach patterns, insider risk, PHI exposure, PCI compliance failures</div>
+    <div class="source-relevance">The DBIR is the most-cited breach research report in the industry. The 2025 edition documents that insider misuse accounts for a significant share of healthcare breaches and that retail PCI violations continue to rise. Grounds the healthcare insider risk and retail PCI use cases in credible, annually-updated data.</div>
+    <div class="used-in">
+      <span class="used-tag">Security · Healthcare</span>
+      <span class="used-tag">Security · Retail</span>
+      <span class="used-tag">Data · Healthcare</span>
+    </div>
+    <a class="source-link" href="https://www.verizon.com/business/resources/reports/dbir/" target="_blank">→ verizon.com/dbir</a>
+  </div>
+
+  <!-- [8] -->
+  <div class="source-card" id="r8">
+    <div class="source-num">[8]</div>
+    <div class="source-type-badge" style="background:var(--news-bg);color:var(--news);">Industry News</div>
+    <div class="source-title">Dragos / Claroty: State of OT/ICS Cybersecurity 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Dragos / Claroty · <strong>Year:</strong> 2025 · <strong>Topic:</strong> OT threat landscape, ransomware in manufacturing and government, ICS vulnerabilities</div>
+    <div class="source-relevance">Documents the rapid increase in cyberattacks targeting operational technology environments in manufacturing, energy, and state/local government, and the limitations of traditional security tools in these environments. Supports OT security and ransomware response use cases.</div>
+    <div class="used-in">
+      <span class="used-tag">Security · Manufacturing</span>
+      <span class="used-tag">Security · State &amp; Local</span>
+    </div>
+    <a class="source-link" href="https://www.dragos.com/year-in-review/" target="_blank">→ dragos.com/year-in-review</a>
+  </div>
+
+  <!-- [9] -->
+  <div class="source-card" id="r9">
+    <div class="source-num">[9]</div>
+    <div class="source-type-badge" style="background:var(--research-bg);color:var(--research);">Research / Study</div>
+    <div class="source-title">Anthropic / Salesforce: Shadow AI &amp; Ungoverned Tool Adoption Study</div>
+    <div class="source-meta"><strong>Publisher:</strong> Multiple (Anthropic, Salesforce, Microsoft internal data) · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Employee AI tool adoption, ungoverned data flows, shadow AI risk quantification</div>
+    <div class="source-relevance">Cross-references multiple vendor and analyst studies documenting that 90%+ of employees are using personal AI tools with corporate data, and that 8.2GB of corporate data per month flows into ungoverned AI applications at the average enterprise. Primary source for shadow AI risk use cases.</div>
+    <div class="used-in">
+      <span class="used-tag">Security · Technology &amp; SaaS</span>
+      <span class="used-tag">Executive · Technology &amp; SaaS</span>
+    </div>
+    <a class="source-link" href="https://www.anthropic.com/research" target="_blank">→ anthropic.com/research</a>
+  </div>
+
+  <!-- [10] -->
+  <div class="source-card" id="r10">
+    <div class="source-num">[10]</div>
+    <div class="source-type-badge" style="background:var(--vendor-bg);color:var(--vendor);">Vendor Research</div>
+    <div class="source-title">CyberArk: Identity Security Threat Landscape Report 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> CyberArk · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Privileged access abuse, standing credentials, just-in-time access, identity-based breaches</div>
+    <div class="source-relevance">Documents that over 80% of breaches involve compromised privileged credentials and that organizations using just-in-time access controls reduce their privileged access attack surface by 90%. Primary source for PAM and standing access use cases across financial services, manufacturing, and retail.</div>
+    <div class="used-in">
+      <span class="used-tag">IAM · Financial Services</span>
+      <span class="used-tag">IAM · Manufacturing</span>
+      <span class="used-tag">IAM · Retail</span>
+    </div>
+    <a class="source-link" href="https://www.cyberark.com/resources/threat-research-blog/identity-security-threat-landscape-2025" target="_blank">→ cyberark.com/threat-landscape</a>
+  </div>
+
+  <!-- [11] -->
+  <div class="source-card" id="r11">
+    <div class="source-num">[11]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">Okta: State of Identity 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Okta · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Identity governance, automated provisioning, workforce lifecycle management, healthcare access</div>
+    <div class="source-relevance">Benchmarks time-to-provision across industries, finding healthcare and professional services average 4–7 days for new user access setup and that automated provisioning reduces this to under 4 hours. Supports healthcare credentialing and professional services access governance use cases.</div>
+    <div class="used-in">
+      <span class="used-tag">IAM · Healthcare</span>
+      <span class="used-tag">IAM · Professional Services</span>
+      <span class="used-tag">HR · Healthcare</span>
+    </div>
+    <a class="source-link" href="https://www.okta.com/resources/whitepaper/state-of-identity-2025/" target="_blank">→ okta.com/state-of-identity</a>
+  </div>
+
+  <!-- [12] -->
+  <div class="source-card" id="r12">
+    <div class="source-num">[12]</div>
+    <div class="source-type-badge" style="background:var(--news-bg);color:var(--news);">Industry News</div>
+    <div class="source-title">CyberArk Acquires Venafi: Machine Identity Management</div>
+    <div class="source-meta"><strong>Publisher:</strong> CyberArk / PR Newswire · <strong>Year:</strong> 2024 · <strong>Topic:</strong> Non-human identities, machine identity, API credentials, service account governance</div>
+    <div class="source-relevance">CyberArk's $1.54B acquisition of Venafi signals that machine and non-human identity management is the next major frontier in identity security. In SaaS and cloud-native environments, non-human identities outnumber human ones by 45:1. Grounds the machine identity use case for technology organizations.</div>
+    <div class="used-in">
+      <span class="used-tag">IAM · Technology &amp; SaaS</span>
+    </div>
+    <a class="source-link" href="https://www.cyberark.com/press/cyberark-completes-acquisition-of-venafi/" target="_blank">→ cyberark.com/venafi</a>
+  </div>
+
+  <!-- [13] -->
+  <div class="source-card" id="r13">
+    <div class="source-num">[13]</div>
+    <div class="source-type-badge" style="background:var(--vendor-bg);color:var(--vendor);">Vendor Research</div>
+    <div class="source-title">Glean: Enterprise AI Search ROI &amp; Forrester TEI Study</div>
+    <div class="source-meta"><strong>Publisher:</strong> Glean / Forrester (commissioned TEI) · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Enterprise search, knowledge retrieval, productivity ROI, sales enablement</div>
+    <div class="source-relevance">The Forrester Total Economic Impact study for Glean documents an average 4.8 hours per week saved per knowledge worker through AI-powered enterprise search. Directly supports data and analytics, HR knowledge management, and sales enablement use cases across financial services, professional services, and technology organizations.</div>
+    <div class="used-in">
+      <span class="used-tag">Data · Financial Services</span>
+      <span class="used-tag">Data · Professional Services</span>
+      <span class="used-tag">HR · Technology &amp; SaaS</span>
+      <span class="used-tag">Sales · Financial Services</span>
+      <span class="used-tag">Sales · Technology &amp; SaaS</span>
+    </div>
+    <a class="source-link" href="https://www.glean.com/resources/forrester-tei-study" target="_blank">→ glean.com/forrester-tei</a>
+  </div>
+
+  <!-- [14] -->
+  <div class="source-card" id="r14">
+    <div class="source-num">[14]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">McKinsey: The Economic Potential of Generative AI (2025 Update)</div>
+    <div class="source-meta"><strong>Publisher:</strong> McKinsey Global Institute · <strong>Year:</strong> 2025 · <strong>Topic:</strong> AI value by business function, retail personalization, product analytics, revenue operations</div>
+    <div class="source-relevance">McKinsey's landmark generative AI value analysis identifies retail / consumer and technology as the sectors with the highest near-term AI capture potential, with customer personalization, demand forecasting, and sales productivity cited as the top use cases. Grounds retail and technology executive and revenue ops cells.</div>
+    <div class="used-in">
+      <span class="used-tag">Data · Technology &amp; SaaS</span>
+      <span class="used-tag">Data · Retail</span>
+      <span class="used-tag">Finance · Retail</span>
+      <span class="used-tag">Sales · Retail</span>
+      <span class="used-tag">Executive · Retail</span>
+    </div>
+    <a class="source-link" href="https://www.mckinsey.com/capabilities/mckinsey-digital/our-insights/the-economic-potential-of-generative-ai" target="_blank">→ mckinsey.com/genai-value</a>
+  </div>
+
+  <!-- [15] -->
+  <div class="source-card" id="r15">
+    <div class="source-num">[15]</div>
+    <div class="source-type-badge" style="background:var(--gov-bg);color:var(--gov);">Government Source</div>
+    <div class="source-title">NASCIO: State CIO Priorities &amp; AI Adoption Survey 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> National Association of State CIOs (NASCIO) · <strong>Year:</strong> 2025 · <strong>Topic:</strong> State IT priorities, AI adoption barriers, grants management, citizen services</div>
+    <div class="source-relevance">NASCIO's annual state CIO survey identifies AI-assisted citizen services, grants management, and records modernization as the top three AI investment priorities for state and local government in 2025–2026. Grounds all state and local government use cases across data, finance, HR, and executive rows.</div>
+    <div class="used-in">
+      <span class="used-tag">Data · State &amp; Local</span>
+      <span class="used-tag">Finance · State &amp; Local</span>
+      <span class="used-tag">HR · State &amp; Local</span>
+      <span class="used-tag">Executive · State &amp; Local</span>
+    </div>
+    <a class="source-link" href="https://www.nascio.org/resource-center/resources/2025-state-cio-survey/" target="_blank">→ nascio.org/state-cio-survey</a>
+  </div>
+
+  <!-- [16] -->
+  <div class="source-card" id="r16">
+    <div class="source-num">[16]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">Gartner: AI in Finance &amp; Accounting Automation 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Gartner · <strong>Year:</strong> 2025 · <strong>Topic:</strong> AP automation, financial close, regulatory reporting, continuous accounting</div>
+    <div class="source-relevance">Documents that organizations using AI in finance operations reduce month-end close time by 30–50% and cut AP processing costs by 60–80% through automation of routine matching and exception handling. Directly supports finance use cases across financial services, manufacturing, technology, and federal sectors.</div>
+    <div class="used-in">
+      <span class="used-tag">Finance · Financial Services</span>
+      <span class="used-tag">Finance · Manufacturing</span>
+      <span class="used-tag">Finance · Technology &amp; SaaS</span>
+      <span class="used-tag">Executive · Financial Services</span>
+    </div>
+    <a class="source-link" href="https://www.gartner.com/en/finance/insights/finance-ai" target="_blank">→ gartner.com/finance-ai</a>
+  </div>
+
+  <!-- [17] -->
+  <div class="source-card" id="r17">
+    <div class="source-num">[17]</div>
+    <div class="source-type-badge" style="background:var(--research-bg);color:var(--research);">Research / Study</div>
+    <div class="source-title">Change Healthcare / CAQH: AI in Healthcare Revenue Cycle Study</div>
+    <div class="source-meta"><strong>Publisher:</strong> CAQH Index / Change Healthcare · <strong>Year:</strong> 2025 · <strong>Topic:</strong> Claims automation, revenue cycle management, billing efficiency, administrative cost reduction</div>
+    <div class="source-relevance">The CAQH Index is the definitive annual study of healthcare administrative costs. The 2025 edition documents that the industry wastes $9.8B annually on manual claims processing that could be automated, and that AI-assisted claims workflows reduce per-claim processing cost by 68%. Grounds healthcare finance and executive use cases.</div>
+    <div class="used-in">
+      <span class="used-tag">Finance · Healthcare</span>
+      <span class="used-tag">Finance · Professional Services</span>
+      <span class="used-tag">Executive · Healthcare</span>
+    </div>
+    <a class="source-link" href="https://www.caqh.org/explorations/index" target="_blank">→ caqh.org/index</a>
+  </div>
+
+  <!-- [18] -->
+  <div class="source-card" id="r18">
+    <div class="source-num">[18]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">Josh Bersin: AI in HR &amp; Workforce Management 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> The Josh Bersin Company · <strong>Year:</strong> 2025 · <strong>Topic:</strong> AI in onboarding, workforce compliance, resource allocation, HR automation</div>
+    <div class="source-relevance">Bersin's HR technology research documents that organizations using AI-assisted onboarding achieve new hire productivity 40% faster, and that AI-based skills matching improves resource utilization by 20–30% in professional services and consulting environments. Grounds HR use cases across all verticals.</div>
+    <div class="used-in">
+      <span class="used-tag">HR · Financial Services</span>
+      <span class="used-tag">HR · Manufacturing</span>
+      <span class="used-tag">HR · Technology &amp; SaaS</span>
+      <span class="used-tag">HR · Professional Services</span>
+      <span class="used-tag">HR · Retail</span>
+      <span class="used-tag">HR · State &amp; Local</span>
+    </div>
+    <a class="source-link" href="https://joshbersin.com/research/ai-in-hr-2025/" target="_blank">→ joshbersin.com/ai-in-hr</a>
+  </div>
+
+  <!-- [19] -->
+  <div class="source-card" id="r19">
+    <div class="source-num">[19]</div>
+    <div class="source-type-badge" style="background:var(--vendor-bg);color:var(--vendor);">Vendor Research</div>
+    <div class="source-title">Salesforce: State of Sales Report 2025</div>
+    <div class="source-meta"><strong>Publisher:</strong> Salesforce · <strong>Year:</strong> 2025 · <strong>Topic:</strong> AI in sales, RFP automation, proposal generation, content findability, rep productivity</div>
+    <div class="source-relevance">Documents that the average sales rep spends only 28% of their time actually selling, with the rest consumed by administrative tasks including CRM updates, proposal building, and content search. AI-assisted sales tools recover 5–8 hours per week of active selling time. Grounds sales use cases across all verticals including government RFP response.</div>
+    <div class="used-in">
+      <span class="used-tag">Sales · Healthcare</span>
+      <span class="used-tag">Sales · Manufacturing</span>
+      <span class="used-tag">Sales · Technology &amp; SaaS</span>
+      <span class="used-tag">Sales · Professional Services</span>
+      <span class="used-tag">Sales · State &amp; Local</span>
+    </div>
+    <a class="source-link" href="https://www.salesforce.com/resources/research-reports/state-of-sales/" target="_blank">→ salesforce.com/state-of-sales</a>
+  </div>
+
+  <!-- [20] -->
+  <div class="source-card" id="r20">
+    <div class="source-num">[20]</div>
+    <div class="source-type-badge" style="background:var(--analyst-bg);color:var(--analyst);">Analyst Report</div>
+    <div class="source-title">Deloitte: The Future of Professional Services in the Age of AI</div>
+    <div class="source-meta"><strong>Publisher:</strong> Deloitte Insights · <strong>Year:</strong> 2025 · <strong>Topic:</strong> AI impact on professional services margins, headcount leverage, knowledge work automation</div>
+    <div class="source-relevance">Deloitte's research documents that professional services firms using AI in knowledge-intensive workflows achieve a 25–35% improvement in revenue per employee without proportional headcount growth — effectively changing the leverage ratio of the business. Grounds the professional services executive use case around margin and scale.</div>
+    <div class="used-in">
+      <span class="used-tag">Executive · Professional Services</span>
+    </div>
+    <a class="source-link" href="https://www2.deloitte.com/insights/ai-professional-services" target="_blank">→ deloitte.com/insights/ai-ps</a>
+  </div>
+
+</div><!-- end source-grid -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-text">
+    20 sources · Analyst, Vendor, Research, Government &amp; Industry News<br>
+    All sources current as of March 2026 · Verify links before external distribution.<br>
+    <a href="doc3_matrix_populated.html" target="_blank">← Return to Functional Use Case Matrix</a>
+  </div>
+  <div class="footer-right">
+    Desert Den Consulting for Alchemy Technology Group<br>
+    March 2026 · Confidential · Internal Use Only
+  </div>
+</div>
+
+</body>
+</html>
