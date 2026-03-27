@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alchemy Technology Group — Sales Intelligence Dashboard</title>
+<style>
+:root {
+  --navy: #0D1B3E;
+  --blue: #1E5FA5;
+  --teal: #0F6E56;
+  --amber: #854F0B;
+  --red: #993C1D;
+  --purple: #534AB7;
+  --gray: #5F5E5A;
+  --light: #F8F9FA;
+  --white: #FFFFFF;
+  --border: #E0E0E0;
+  --text: #1A1A1A;
+  --muted: #666666;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F2F5; color: var(--text); font-size: 14px; }
+
+/* HEADER */
+.site-header { background: var(--navy); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.site-header h1 { font-size: 16px; font-weight: 600; letter-spacing: .03em; }
+.site-header .sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+.coverage-pill { background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: rgba(255,255,255,0.85); }
+
+/* NAV TABS */
+.nav-tabs { background: white; border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; overflow-x: auto; position: sticky; top: 57px; z-index: 99; }
+.nav-tab { padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all .15s; }
+.nav-tab:hover { color: var(--navy); }
+.nav-tab.active { color: var(--navy); border-bottom-color: var(--blue); }
+
+/* LAYOUT */
+.page { display: none; padding: 24px; max-width: 1400px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* METRICS STRIP */
+.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.metric { background: white; border-radius: 10px; padding: 16px 20px; border: 1px solid var(--border); }
+.metric .val { font-size: 28px; font-weight: 700; color: var(--navy); }
+.metric .lbl { font-size: 11px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* FILTER ROW */
+.filter-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+.filter-btn { padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--muted); transition: all .15s; }
+.filter-btn:hover { border-color: var(--blue); color: var(--blue); }
+.filter-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+/* SEARCH */
+.search-box { padding: 8px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; width: 260px; outline: none; }
+.search-box:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,95,165,0.1); }
+
+/* ALERT BAR */
+.alert-bar { background: #FFF3E0; border: 1px solid #FFB74D; border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #854F0B; margin-bottom: 16px; }
+.alert-bar strong { color: #5D3300; }
+
+/* TABLE */
+.table-wrap { background: white; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tbl thead th { background: var(--navy); color: white; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; cursor: pointer; user-select: none; }
+.tbl thead th:hover { background: #1a2d5e; }
+.tbl thead th .sort-arrow { opacity: 0.5; font-size: 10px; margin-left: 4px; }
+.tbl thead th.sorted .sort-arrow { opacity: 1; }
+.tbl tbody tr { border-bottom: 1px solid #F0F0F0; cursor: pointer; transition: background .1s; }
+.tbl tbody tr:hover { background: #F5F8FF; }
+.tbl tbody tr.selected { background: #EBF3FF; }
+.tbl tbody tr.star-row { background: #FFFDE7; }
+.tbl tbody tr.star-row:hover { background: #FFF9C4; }
+.tbl tbody td { padding: 10px 14px; vertical-align: middle; }
+.rep-name { font-weight: 600; color: var(--navy); }
+.rep-title { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.rep-geo { font-size: 11px; color: #999; }
+
+/* BADGES */
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+.badge-critical { background: #FAECE7; color: #993C1D; }
+.badge-high { background: #FAEEDA; color: #854F0B; }
+.badge-medium { background: #E1F5EE; color: #0F6E56; }
+.badge-central { background: #FAECE7; color: #993C1D; }
+.badge-west { background: #E1F5EE; color: #0F6E56; }
+.badge-east { background: #E6F1FB; color: #185FA5; }
+.badge-ecs { background: #EEEDFE; color: #534AB7; }
+.badge-star { background: #FFF9C4; color: #7B6000; }
+.star-icon { color: #F59E0B; margin-left: 4px; }
+
+/* SCORE BAR */
+.score-wrap { display: flex; align-items: center; gap: 6px; }
+.score-bar { width: 50px; height: 5px; background: #E0E0E0; border-radius: 3px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 3px; }
+.score-num { font-size: 11px; font-weight: 600; }
+
+/* DETAIL PANEL */
+.detail-panel { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; display: none; }
+.detail-panel.open { display: block; }
+.dp-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.dp-avatar { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.dp-name { font-size: 20px; font-weight: 700; color: var(--navy); }
+.dp-subtitle { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.dp-score-big { font-size: 32px; font-weight: 700; text-align: right; }
+.dp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.dp-field { background: #F8F9FA; border-radius: 8px; padding: 10px 14px; }
+.dp-field-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.dp-field-val { font-size: 13px; font-weight: 600; color: var(--navy); line-height: 1.4; }
+.insight-block { border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; font-size: 13px; line-height: 1.65; }
+.insight-block .ib-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+.insight-intel { background: #F0F4FA; border-left: 4px solid var(--blue); }
+.insight-intel .ib-label { color: var(--blue); }
+.insight-action { background: #F0FAF5; border-left: 4px solid var(--teal); }
+.insight-action .ib-label { color: var(--teal); }
+.insight-warning { background: #FFF8F0; border-left: 4px solid var(--amber); }
+.insight-warning .ib-label { color: var(--amber); }
+.cert-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.cert-tag { font-size: 10px; padding: 3px 8px; border-radius: 20px; background: #F0F0F0; color: #444; }
+.cert-tag.hot { background: #EEEDFE; color: #534AB7; }
+.dp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.dp-actions button { padding: 8px 14px; border: 1px solid var(--blue); border-radius: 6px; font-size: 12px; cursor: pointer; background: white; color: var(--blue); transition: all .15s; }
+.dp-actions button:hover { background: var(--blue); color: white; }
+.dp-close { float: right; cursor: pointer; font-size: 18px; color: var(--muted); line-height: 1; padding: 2px 6px; }
+.dp-close:hover { color: var(--text); }
+
+/* STAR CARDS */
+.star-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.star-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; overflow: hidden; cursor: pointer; transition: box-shadow .15s; }
+.star-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.star-card .accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.star-card-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.star-card-name { font-size: 15px; font-weight: 700; color: var(--navy); }
+.star-card-role { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.star-card-insight { font-size: 12px; color: #444; line-height: 1.6; margin-bottom: 10px; }
+.star-card-action { font-size: 11px; color: var(--teal); font-weight: 600; background: #F0FAF5; border-radius: 6px; padding: 7px 10px; }
+.star-card-score { font-size: 22px; font-weight: 700; text-align: right; }
+
+/* FINDINGS */
+.finding-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 12px; }
+.finding-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+.finding-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
+.finding-body { font-size: 13px; color: #444; line-height: 1.7; }
+
+/* TRAVEL SECTION */
+.travel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.travel-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; border-left: 4px solid var(--blue); }
+.travel-card.p1 { border-left-color: #993C1D; }
+.travel-card.p2 { border-left-color: #854F0B; }
+.travel-card.p3 { border-left-color: #0F6E56; }
+.travel-week { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+.travel-city { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.travel-why { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 8px; }
+.travel-reps { font-size: 11px; color: var(--blue); font-weight: 600; margin-bottom: 6px; }
+.travel-urgency { height: 5px; background: #E0E0E0; border-radius: 3px; overflow: hidden; }
+.travel-urgency-fill { height: 100%; border-radius: 3px; }
+
+/* MAP placeholder */
+.map-placeholder { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 40px; text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+/* MISSING SECTION */
+.missing-item { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; border-left: 4px solid #FFB74D; display: flex; justify-content: space-between; align-items: flex-start; }
+.missing-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+.missing-note { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+/* SECTION TITLES */
+.section-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.section-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+
+/* GITHUB SETUP */
+.setup-box { background: #1A1A2E; color: #E0E0E0; border-radius: 10px; padding: 20px 24px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8; margin-bottom: 12px; }
+.setup-box .comment { color: #6A9955; }
+.setup-box .cmd { color: #9CDCFE; }
+.setup-step { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.step-content { flex: 1; }
+.step-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+.step-body { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .star-grid { grid-template-columns: 1fr; }
+  .travel-grid { grid-template-columns: 1fr; }
+  .dp-grid { grid-template-columns: repeat(2, 1fr); }
+  .page { padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <div>
+    <div class="sub">AI Strategy Director · Field Engagement Guide · March 2026</div>
+    <h1>Alchemy Technology Group — Sales Intelligence Dashboard</h1>
+  </div>
+  <div class="coverage-pill">47 profiles · 42 reps · 98% coverage</div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showPage('roster')">Full Roster</div>
+  <div class="nav-tab" onclick="showPage('stars')">Star Performers</div>
+  <div class="nav-tab" onclick="showPage('travel')">Travel Priority</div>
+  <div class="nav-tab" onclick="showPage('findings')">Key Findings</div>
+  <div class="nav-tab" onclick="showPage('setup')">GitHub Setup</div>
+</div>
+
+<!-- ROSTER PAGE -->
+<div class="page active" id="page-roster">
+  <div class="metrics">
+    <div class="metric"><div class="val">42</div><div class="lbl">Reps analyzed</div></div>
+    <div class="metric"><div class="val">8</div><div class="lbl">Star performers</div></div>
+    <div class="metric"><div class="val">6</div><div class="lbl">ECS arrivals</div></div>
+    <div class="metric"><div class="val">6</div><div class="lbl">Okta-credentialed</div></div>
+    <div class="metric"><div class="val">98%</div><div class="lbl">Profile coverage</div></div>
+  </div>
+  <div class="alert-bar"><strong>Org chart correction:</strong> Kipp Seifert is listed as an AM in the roster — he is actually a Regional Director with 8+ years of ATG tenure. Verify with Phil/Lucas before engaging him.</div>
+  <div class="filter-row">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn active" onclick="applyFilter('all',this)">All (42)</button>
+    <button class="filter-btn" onclick="applyFilter('critical',this)">Critical</button>
+    <button class="filter-btn" onclick="applyFilter('high',this)">High</button>
+    <button class="filter-btn" onclick="applyFilter('central',this)">Central</button>
+    <button class="filter-btn" onclick="applyFilter('west',this)">West</button>
+    <button class="filter-btn" onclick="applyFilter('east',this)">East/SE</button>
+    <button class="filter-btn" onclick="applyFilter('ecs',this)">ECS arrivals</button>
+    <button class="filter-btn" onclick="applyFilter('star',this)">Stars</button>
+    <button class="filter-btn" onclick="applyFilter('veteran',this)">5+ yr veterans</button>
+    <input class="search-box" type="text" placeholder="Search name, location, background..." oninput="searchRoster(this.value)" style="margin-left:auto">
+  </div>
+  <div id="detail-slot" class="detail-panel"></div>
+  <div class="table-wrap">
+    <table class="tbl" id="roster-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable('n')">Name <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable('t')">Title / Location <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable('yr')">Tenure <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable('r')">Region <span class="sort-arrow">↕</span></th>
+          <th>Background</th>
+          <th>Key signals</th>
+          <th onclick="sortTable('glean')">Glean fit <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable('score')">Priority <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="roster-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STARS PAGE -->
+<div class="page" id="page-stars">
+  <div class="section-title">Star Performers</div>
+  <div class="section-sub">Eight reps identified through LinkedIn profiling as your highest-priority co-sell partners. Engage all eight within the first 30 days. These are not the eight most senior people — they are the eight whose specific backgrounds create the most direct acceleration for the Glean and AI governance motion.</div>
+  <div class="star-grid" id="star-grid"></div>
+</div>
+
+<!-- TRAVEL PAGE -->
+<div class="page" id="page-travel">
+  <div class="section-title">Travel Priority Sequence</div>
+  <div class="section-sub">Six markets sequenced by compound value: rep concentration × Glean ICP density × AI maturity × strategic timing. Physical presence in the first 90 days creates relationship foundations that virtual can't replicate.</div>
+  <div class="travel-grid" id="travel-grid"></div>
+</div>
+
+<!-- FINDINGS PAGE -->
+<div class="page" id="page-findings">
+  <div class="section-title">Key Findings from Profile Analysis</div>
+  <div class="section-sub">Nine discoveries from analyzing 47 LinkedIn profiles that materially change how you engage this organization. None of these were visible from the org roster alone.</div>
+  <div id="findings-list"></div>
+</div>
+
+<!-- SETUP PAGE -->
+<div class="page" id="page-setup">
+  <div class="section-title">Publishing to GitHub Pages</div>
+  <div class="section-sub">This file is a single self-contained HTML document — no server, no dependencies, no build step. Follow these steps to publish it as a private or public URL you can share.</div>
+  <div class="setup-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">Create a new private GitHub repository</div>
+      <div class="step-body">Go to github.com → New repository. Name it something like <code>atg-intel</code>. Set visibility to <strong>Private</strong> if you want restricted access, or Public for a shareable link. Initialize with a README.</div>
+    </div>
+  </div>
+  <div class="setup-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Upload index.html</div>
+      <div class="step-body">Click "Add file" → "Upload files" in your new repo. Drag the <code>index.html</code> file. Commit directly to main. That's it — no other files needed.</div>
+    </div>
+  </div>
+  <div class="setup-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Enable GitHub Pages</div>
+      <div class="step-body">Go to Settings → Pages → Source: Deploy from branch → Branch: main → Folder: / (root). Click Save. GitHub will show you a URL like <code>https://yourusername.github.io/atg-intel/</code></div>
+    </div>
+  </div>
+  <div class="setup-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Access control (optional)</div>
+      <div class="step-body">For a truly private URL, keep the repo private and use GitHub Pages with authentication — or simply share the file directly via email/Dropbox. The HTML is fully self-contained and works offline.</div>
+    </div>
+  </div>
+  <div class="setup-box">
+    <div class="comment"># Alternative: CLI approach</div>
+    <div class="cmd">git init atg-intel && cd atg-intel</div>
+    <div class="cmd">cp /path/to/index.html .</div>
+    <div class="cmd">git add . && git commit -m "ATG sales intelligence dashboard"</div>
+    <div class="cmd">gh repo create atg-intel --private --push --source=.</div>
+    <div class="comment"># Then enable Pages in GitHub.com settings</div>
+  </div>
+  <div class="setup-step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <div class="step-title">Updating the dashboard</div>
+      <div class="step-body">When you receive new LinkedIn profiles or want to update intelligence, re-upload the file to replace <code>index.html</code> in the repo. GitHub Pages deploys in under 2 minutes. All data is embedded directly in the HTML — no database or API needed.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const REPS = [
+  {n:"Lucas Marquardt",i:"LM",t:"SVP of Sales",g:"Minneapolis, MN",r:"central",yr:6.5,prior:"Presidio Area Dir Midwest → CTS VP Sales",bg:"mega-VAR leader",ecs:false,star:true,glean:85,score:97,p:"critical",hotCerts:["C-Suite Selling"],certs:["C-Suite Selling","IT Strategy","National Sales Mgmt"],signals:"Runs Office of CTO + CXO programs. Your role plugs directly into his existing CXO investment.",ins:"Already running a CXO executive engagement program — frame your AI practice as its engine, not as a parallel initiative. He oversees Office of CTO + Centers of Excellence. Minneapolis-based, phone-first relationship with periodic in-person.",act:"Lead with: 'I'm the AI practice arm of the CXO program you've already built.' Have the Glean Forrester ROI model ready for any numbers conversation."},
+  {n:"Phil Wilhelm",i:"PW",t:"Area VP Sales, Central",g:"Austin, TX",r:"central",yr:2,prior:"Fortinet VP Sales national (5 yrs) → SHI GM + Top Gun Founder (9 yrs) → Koch Capital derivatives trader → Arthur Andersen CPA",bg:"finance-to-tech leader",ecs:false,star:false,glean:80,score:93,p:"critical",hotCerts:["Certified Public Accountant"],certs:["Certified Public Accountant","Leadership","Solution Selling"],signals:"Former CPA + derivatives trader. Founded SHI Top Gun + War College. Managed overlay teams at Fortinet nationally. Joined month of PE close.",ins:"The CPA-then-derivatives-trader background means he will stress-test every ROI number. He founded two internal programs at SHI — he's a culture-builder who thinks in systems. He managed overlay teams at Fortinet and knows exactly what productive vs. parasitic looks like. Show him closed pipeline in 30 days.",act:"First meeting: bring the Glean Forrester ROI model. Frame AI motion as team elevation. Show 30-day closed pipeline before asking for expanded mandate."},
+  {n:"Amy Serafin",i:"AS",t:"Area VP Sales, West",g:"San Diego, CA",r:"west",yr:1.75,prior:"SHI Regional VP San Diego (12.9 yrs total)",bg:"mega-VAR leader",ecs:false,star:false,glean:80,score:90,p:"critical",hotCerts:[],certs:["CRM","Business Development","Cloud Computing"],signals:"13 years at SHI, rose to Regional VP. Now managing ECS integration — 6 new reps in her territory March 2026.",ins:"Just absorbed the ECS acquisition into her territory — 6 brand-new reps who don't know the ATG motion yet. Your West visit is partly about helping her integrate that team. The AI narrative you give them is how she demonstrates value to the ECS team quickly.",act:"Frame your West visit as ECS integration support. Build the AI narrative new ECS reps can carry to their SoCal accounts."},
+  {n:"Kyle Perettine",i:"KP",t:"Director, Southeast",g:"Miami, FL",r:"east",yr:5.1,prior:"Citrix Field Sales Manager FL (254% in 2020, 195% in 2019) → Citrix Territory Mgr CA/HI",bg:"vendor-elite",ecs:false,star:false,glean:75,score:87,p:"critical",hotCerts:["Circle of Excellence 2019+2020"],certs:["Circle of Excellence 2019+2020","Americas Digital Sales Rep of Year 2019"],signals:"254% attainment 2020. 195% 2019. Americas Rep of Year 2019. Flat structure — 8 ICs direct.",ins:"Elite performer running a flat structure with no middle managers. He needs you as a force multiplier. His Citrix pedigree means he thinks in platform narratives — he'll respect someone who shows up with a CXO access story, not a process.",act:"Bring him one executive relationship play he can activate immediately. His team needs top-down mandate to unlock bigger deals."},
+  {n:"Hunter Wright",i:"HW",t:"Sales Director, Southwest",g:"Austin, TX",r:"central",yr:0.5,prior:"SHI TOLA Enterprise Director (7 mo) → SHI Texas DSM 9+ yrs",bg:"mega-VAR",ecs:false,star:false,glean:80,score:81,p:"critical",hotCerts:[],certs:["Leading Inclusive Teams","Sales Management"],signals:"6 months at ATG. Manages 12-rep SW team. Built 14-rep teams at SHI.",ins:"Only 6 months in — still establishing his own account relationships. Your AI motion can be part of his first-year story. Come in as a resource, score a Glean win together, and he will be your strongest internal advocate.",act:"Co-sell first. Help Hunter win. Trust before playbooks."},
+  {n:"Kipp Seifert",i:"KS",t:"⚠️ Regional Sales Director – Central",g:"St. Louis, MO",r:"central",yr:8.1,prior:"Oracle BI/Analytics Field Sales → Citrix FSM → SRSsoft healthcare EHR",bg:"analytics+vendor",ecs:false,star:false,glean:82,score:88,p:"critical",hotCerts:[],certs:["Rapid7 Partner Academy"],signals:"⚠️ LISTED AS AM — actually Regional Director. 8+ year veteran. Oracle BI background. Healthcare HCIT.",ins:"CRITICAL: The org roster misidentifies him as an AM. He is a Regional Director with 8+ years at ATG — one of the longest-tenured people in the company. He covers Central from St. Louis. Confirm his org structure with Phil before engaging.",act:"URGENT: Verify org role before any engagement. Treat as peer director, not AM."},
+  {n:"Todd Stephens",i:"TS",t:"Gulf South Principal",g:"Mandeville, LA",r:"central",yr:9,prior:"Sparkhound Commercial Dir (8 yrs) → Equifax Natl AE (10 yrs) → Deutsche Financial",bg:"finance+analytics",ecs:false,star:false,glean:72,score:77,p:"high",hotCerts:[],certs:[],signals:"9-year ATG veteran. Financial services, oil/gas, hospital, Fortune 500. Equifax 10-yr background.",ins:"9-year ATG veteran with deep C-suite relationships in financial data, credit, and risk analytics. He doesn't need product enablement — he needs an executive AI narrative to carry into existing relationships.",act:"Give him the CXO AI briefing framing. He'll open doors your newer reps can't reach."},
+  {n:"Jeff Versfelt",i:"JV",t:"Account Executive",g:"Dallas, TX",r:"central",yr:2.9,prior:"Okta Director Enterprise TX+LA (3.8 yrs) → Rubrik RSD → Cisco 11.5 yrs",bg:"vendor-elite",ecs:false,star:true,glean:96,score:95,p:"critical",hotCerts:["MEDDPICC","Okta President's Club"],certs:["MEDDPICC","Force Management","Okta President's Club","Cisco CSE","CCDA"],signals:"110%+ quota every year at Cisco, Okta, Rubrik. Former Okta Director TX+LA. MEDDPICC trained.",ins:"The most elite performer in Central. Former Okta Director for Texas AND Louisiana — he literally wrote the enterprise identity sales playbook for this region. MEDDPICC trained — come with a quantified business case and named economic buyer, not a narrative pitch.",act:"DFW top co-sell priority. His Okta depth + Glean governance = fastest path to CISO-neutral $300K+ deals. MEDDPICC-structured business case is the approach."},
+  {n:"Brandon Brennan",i:"BB",t:"Account Executive",g:"Houston, TX",r:"central",yr:8.5,prior:"Metalogix (Microsoft SharePoint ISV) → Dell AppAssure",bg:"ISV+vendor",ecs:false,star:true,glean:90,score:89,p:"critical",hotCerts:["CyberArk CSP"],certs:["CyberArk CSP","Nutanix CSE","Nutanix NCSR"],signals:"8.5 yr Houston veteran. CyberArk CSP. SharePoint ISV background.",ins:"Longest-tenured Houston rep at 8.5 years. CyberArk CSP cert makes CISO security objection deflection native. SharePoint ISV background means he understands the enterprise knowledge fragmentation problem Glean solves. First Houston co-sell target.",act:"Priority 1 Houston co-sell. Build CyberArk+Glean permissions story together before first joint account visit."},
+  {n:"Colleen Wyzykowski",i:"CW",t:"Senior Account Executive (MN/ND)",g:"Minneapolis, MN",r:"central",yr:3.1,prior:"Varonis Strategic AE 7.1 yrs → Oracle Oil & Gas",bg:"security-vendor",ecs:false,star:true,glean:92,score:87,p:"critical",hotCerts:["Varonis Partner University"],certs:["Varonis Partner University","Zscaler CSP"],signals:"7+ years at Varonis as Strategic AE. Lists AI in ATG practice areas. Zscaler cert. Oracle Oil & Gas.",ins:"She IS the Varonis expert in ATG. Varonis is a core partner in the Glean governance stack — she can close the Varonis side while you close Glean, making it a natural package deal. Explicitly lists AI as a service area.",act:"Glean+Varonis data governance bundle. She's the Varonis closer; you're the Glean opener."},
+  {n:"Daniel Guzman",i:"DG",t:"Public Sector Lead",g:"Austin, TX",r:"central",yr:1.6,prior:"Presidio Senior AM (5 yrs) → ForeScout Named AM → SHI Gov AE (6.4 yrs) → Dell Public Sector",bg:"gov-specialist",ecs:false,star:true,glean:80,score:83,p:"critical",hotCerts:["Okta WIC Accreditation","Okta CIC Accreditation"],certs:["Okta WIC Accreditation","Okta CIC Accreditation","Splunk Accredited Sales Rep","Varonis Partner University","Rapid7 Partner Academy"],signals:"AI listed as LinkedIn top skill. Okta WIC+CIC accreditations. 3x President's Club. Texas DIR contract.",ins:"The only rep in the entire org to explicitly list AI as a LinkedIn top skill. Okta identity certs align perfectly with AI agent governance. Texas DIR contract is the procurement vehicle for state/local government AI.",act:"Day 1 relationship. Texas DIR contract + his Okta certs + AI positioning = government AI readiness wedge play."},
+  {n:"Kris Kubelka",i:"KK",t:"Senior Account Executive",g:"Baton Rouge, LA",r:"central",yr:1.8,prior:"Sparkhound Partner+SAE (12.8 yrs) → CTO Healthcare Startup → CIO Pipeline Co. → Equifax Sr. Director",bg:"CxO-exec-turned-sales",ecs:false,star:true,glean:80,score:83,p:"high",hotCerts:[],certs:["ITILv3 Foundation"],signals:"Former CTO AND CIO before sales. 25+ years IT industry. Gulf South manufacturing, healthcare, energy.",ins:"When he walks into a CTO conversation, he has done that job. His executive IT leadership credibility in Gulf South industrial accounts is irreplaceable. No other ATG rep can match it.",act:"Deploy as executive co-presenter in Gulf South C-suite meetings. His credibility is the door-opener."},
+  {n:"Corbin Orr",i:"CO",t:"Strategic Account Executive",g:"Houston, TX",r:"central",yr:8.4,prior:"Citrix Field Sales Manager, Houston Named Accounts",bg:"vendor",ecs:false,star:false,glean:80,score:82,p:"high",hotCerts:["CCSP"],certs:["CCSP"],signals:"Strategic title = largest Houston accounts. CCSP cert is rare for an AE. 8.4 yr veteran.",ins:"CCSP (Certified Cloud Security Professional) is unusually strong for an account manager. He can hold his own with CISOs. Use him as your CISO-access partner in Houston.",act:"CISO-access play. Expand his existing security conversations into AI governance territory."},
+  {n:"Chris Cooley",i:"CC",t:"Account Executive",g:"Kansas City, MO",r:"central",yr:1.8,prior:"Fortinet Named Enterprise AM (4.5 yrs) → DisruptOps cloud governance startup → SpiderOak data privacy cloud → Venture360 VC",bg:"security+startup+VC",ecs:false,star:false,glean:82,score:76,p:"high",hotCerts:["Zscaler CSP"],certs:["Rapid7 Partner Academy","Zscaler CSP","Nutanix NCSR"],signals:"IAM listed as top LinkedIn skill. Cloud governance startup + data privacy + VC background.",ins:"The most entrepreneurially minded rep in the roster. Cloud governance startup + data privacy + VC background means he thinks in platforms, not SKUs. Bring him into the Year 2 platform conversation early.",act:"Engage on Year 2 IP build. His governance + startup DNA is valuable beyond near-term Glean pipeline."},
+  {n:"Michael Karry",i:"MK",t:"Account Executive",g:"Frisco, TX (DFW+OK)",r:"central",yr:1.3,prior:"Rapid7 Enterprise AE 187% President's Club → Palo Alto Networks 2.5 yrs",bg:"cybersecurity-vendor",ecs:false,star:false,glean:88,score:84,p:"high",hotCerts:[],certs:["Rapid7 Partner Academy"],signals:"Palo Alto + Rapid7 pedigree. Lists AI as a focus area. 187% President's Club at Rapid7.",ins:"Knows both Palo Alto and Rapid7 from inside. Already lists AI as a focus area — self-educating and motivated. Give him the Glean security objection playbook and he'll run with it.",act:"Quick activation. He's already on the AI path — arm him with Glean tools and get out of the way."},
+  {n:"TJ Brown",i:"TB",t:"Account Executive",g:"Houston, TX",r:"central",yr:3.3,prior:"Citrix Field Sales (Houston Named) → Gartner AE Large Enterprise",bg:"vendor+analyst",ecs:false,star:false,glean:80,score:79,p:"high",hotCerts:[],certs:["Advanced Sales Certificate","Varonis Partner University"],signals:"Adjunct Professor at UH Sales Excellence Institute. Gartner background.",ins:"Adjunct Professor at UH Sales Excellence Institute — internal thought leader and multiplier. Gartner background means he already sells business cases, not features. Win him as an AI champion and he'll teach the motion to others organically.",act:"Lead with Forrester data. Win him as an internal AI champion."},
+  {n:"Quinn Reckmeyer",i:"QR",t:"Account Manager",g:"Dallas, TX",r:"central",yr:7.5,prior:"TrendKite PR analytics SaaS → Ethicon Medical Device (#1 company-wide first year)",bg:"SaaS+meddevice",ecs:false,star:false,glean:78,score:80,p:"high",hotCerts:[],certs:["Varonis Partner University","Rapid7 Partner Academy"],signals:"#1 out of 72 reps at Ethicon first full year. Clifton Strengths: Achiever, Competition, Maximizer. 7.5 yr veteran.",ins:"Clifton Strengths profile is pure competitor. Leaderboard framing is the activation hook. 7.5-year ATG veteran with deep DFW relationships.",act:"Gamify the co-sell. 'Be the first DFW rep to close a Glean deal' is the hook."},
+  {n:"April Rider",i:"AR",t:"Account Executive",g:"Round Rock, TX",r:"central",yr:0.3,prior:"Gartner Senior AE (4.8 yrs) → Dell Technologies (7.3 yrs, multiple roles)",bg:"analyst+Dell-vendor",ecs:false,star:false,glean:78,score:74,p:"high",hotCerts:[],certs:["Account Management","Salesforce.com"],signals:"Dell + Gartner background. Headline: 'Building trusted partnerships with state & local government.'",ins:"Shared Dell background creates immediate peer credibility. Focused on state and local government — natural co-seller alongside Daniel Guzman.",act:"Dell peer intro. Gov AI co-sell partner alongside Guzman using Texas DIR contract."},
+  {n:"Kyle Bryan",i:"KB",t:"Account Executive",g:"Frisco, TX",r:"central",yr:0.1,prior:"Cato Networks Regional Director → SHI Regional VP Enterprise → Fortinet Director Named Enterprise",bg:"security-vendor+VAR-exec",ecs:false,star:false,glean:82,score:72,p:"high",hotCerts:[],certs:["VMware Sales Professional","Fortinet NSE3"],signals:"1 month at ATG. Former SHI Regional VP and Fortinet Director — over-leveled for standard AE role.",ins:"Brand new (1 month). Former SHI Regional VP and Fortinet Director — significantly over-leveled for standard AE. High ceiling once settled. Understand his mandate before heavy investment.",act:"Understand his role intent first. Then deploy his Fortinet/security depth with Glean governance story."},
+  {n:"Cody Zavala",i:"CZ",t:"Account Manager",g:"Houston, TX",r:"central",yr:2.3,prior:"HYCU Senior Enterprise AE → Nutanix Commercial AE",bg:"cloud-infra",ecs:false,star:false,glean:70,score:67,p:"medium",hotCerts:[],certs:["AWS Educate","Nutanix NCSR 2022"],signals:"HYCU (SaaS data protection for Okta, Salesforce, Jira, Google Workspace) background.",ins:"HYCU background covers the exact SaaS stack Glean connects. His mental model of enterprise SaaS sprawl makes the Glean knowledge fragmentation problem intuitive.",act:"Houston group enablement. His SaaS protection background makes the Glean connector story natural."},
+  {n:"Larry Lombas",i:"LL",t:"Gulf South Principal",g:"Mandeville, LA",r:"central",yr:6.9,prior:"Palo Alto Networks Named AM (2.9 yrs) → VENYU Solutions (cloud/DR) → EMC Enterprise Sales",bg:"security+storage",ecs:false,star:false,glean:72,score:72,p:"high",hotCerts:[],certs:["Data Center","Disaster Recovery","Cloud Computing"],signals:"6.9 yr ATG veteran. Palo Alto Named AM background. Gulf Coast 20+ year IT industry.",ins:"Palo Alto Named AM background = deep PANW relationship knowledge for co-selling the AI governance story. Gulf Coast energy market with 20+ years IT experience.",act:"Palo Alto+Glean governance story. His PANW background bridges the security narrative."},
+  {n:"Rob Brickweg",i:"RB",t:"Account Manager (MN/SD)",g:"Minneapolis, MN",r:"central",yr:3.2,prior:"Citrix Corporate AM → Dell Commercial AE 3 yrs → SHI AE 6.9 yrs",bg:"VAR+vendor",ecs:false,star:false,glean:68,score:65,p:"medium",hotCerts:[],certs:["Varonis Partner University"],signals:"Covers MN/SD. Same city as Lucas Marquardt. Dell + SHI + Citrix background.",ins:"Same Minneapolis geography as Lucas — local proximity may matter. Standard VAR pedigree. Engage via Lucas as warm intro.",act:"Lucas proximity intro. Research specific MN/SD accounts before 1:1."},
+  {n:"Elizabeth Green",i:"EG",t:"Account Executive",g:"Austin, TX",r:"central",yr:1.8,prior:"Gartner AE (3 yrs) → SHI 7.8 yrs (Top Gun 2017)",bg:"analyst+VAR",ecs:false,star:false,glean:72,score:65,p:"medium",hotCerts:[],certs:["Varonis Partner University"],signals:"SHI Top Gun 2017. Gartner background. Austin enterprise.",ins:"Gartner + SHI Top Gun = achiever with business-case selling fluency. Engage through TJ Brown — they share the same profile and Austin geography.",act:"TJ Brown warm intro. Check Austin account overlap for Glean ICP targets."},
+  {n:"Sarah Ballew",i:"SB",t:"Account Executive",g:"Austin, TX",r:"central",yr:1.4,prior:"Cohesity Senior AE (2 yrs) → SHI 11.8 yrs",bg:"storage+VAR",ecs:false,star:false,glean:70,score:63,p:"medium",hotCerts:[],certs:[],signals:"Cohesity background (cloud data management). New to ATG Dec 2024.",ins:"Cohesity background is adjacent to the Glean data governance story. Still onboarding. Group enablement before 1:1.",act:"Group enablement first. Track Austin account territory for Glean ICP targets."},
+  {n:"Kevin Roof",i:"KR",t:"Regional Director – Rockies/Desert",g:"Denver, CO",r:"west",yr:8.9,prior:"Ivanti Senior AE Majors → HP End User Computing/VDI (3.8 yrs) → LeftHand Networks storage",bg:"VAR+vendor",ecs:false,star:false,glean:85,score:86,p:"critical",hotCerts:[],certs:["Virtualization","Storage","Solution Selling"],signals:"8.9 yr ATG veteran. HP End User Computing background. Denver/Rockies + Desert territory.",ins:"Nearly 9 years at ATG — Kevin IS the Rockies market. HP End User Computing background is directly relevant to the digital workspace + Glean productivity story. Denver is your fastest Glean pilot market.",act:"Denver is your fastest Glean pilot market. Co-sell with Kevin's team immediately on Day 1 of West trip."},
+  {n:"Trevor Gibb",i:"TG",t:"Territory Account Manager",g:"Salt Lake City, UT",r:"west",yr:3.3,prior:"Aviatrix RSM (top West rep, $502K ARR Q4) → Okta RSM Enterprise (134%/119%) → Domo (5 promotions in 4 yrs, President's Club) → Mixpanel ($2.1M ACV, 163%, top rep company-wide)",bg:"SaaS-elite",ecs:false,star:true,glean:94,score:93,p:"critical",hotCerts:["CyberArk PAM CSP","MEDDPICC"],certs:["CyberArk PAM CSP","MEDDPICC","Okta PAM","Varonis Partner University","Rapid7 Partner Academy","Nutanix NCSR","Axonius Fundamental"],signals:"152% quota 2025. 133% quota 2024. 22 net-new customers in 18 months. MEDDPICC + CyberArk PAM cert.",ins:"The single most impressive IC in the entire ATG organization. Every role: top performer. MEDDPICC trained AND CyberArk PAM cert. His Okta background + Glean's identity-respecting architecture = a pitch he can run himself once briefed.",act:"Priority 1 West. Brief him on Glean once and he will close faster than anyone else. MEDDPICC-structured business case."},
+  {n:"Bob Richman",i:"BR",t:"Territory Account Manager",g:"Denver, CO",r:"west",yr:0.8,prior:"Okta Account Executive Denver (3.1 yrs) → Nexthink Enterprise AE → Dell EMC Data Center AE CO",bg:"identity-vendor",ecs:false,star:false,glean:88,score:81,p:"high",hotCerts:[],certs:["Rapid7 Partner Academy","Varonis Partner University","Nutanix NCSR","Rubrik RCDP"],signals:"Former Okta AE in Denver 3+ years. Dell EMC background. 10 months at ATG.",ins:"Okta AE in Denver for 3+ years — identity relationships in the Colorado market align directly with Glean's security story. His Okta background lets you run the Glean + identity governance conversation immediately.",act:"Glean + Okta identity story. His Denver Okta relationships are a market entry point alongside Trevor."},
+  {n:"Evan Harrison",i:"EH",t:"Account Manager",g:"Denver, CO",r:"west",yr:1.6,prior:"Darktrace Enterprise AE (1.8 yrs) → CircleCI SDR III (promoted 3x)",bg:"cybersecurity-SaaS",ecs:false,star:false,glean:72,score:64,p:"medium",hotCerts:[],certs:["Rapid7 Partner Academy"],signals:"Darktrace (AI-native cybersecurity) background. CircleCI DevOps SaaS. Denver.",ins:"Darktrace is an AI-native security company — Evan has already sold AI-driven security solutions. That mental model makes the Glean AI story intuitive, not foreign.",act:"Group enablement first. Leverage his Darktrace AI security context when introducing Glean governance."},
+  {n:"Tamara Crawford",i:"TC",t:"Senior Client Executive",g:"San Diego, CA",r:"west",yr:0.1,prior:"Dell Technologies Large Enterprise Core AE SoCal AI/NVIDIA (5.4 yrs) → Cisco Collaboration Sales Specialist $100M portfolio (3.9 yrs) → Cisco Senior AE $150M+ revenue 10 yrs in a row 115%+",bg:"Dell+Cisco-elite",ecs:true,star:true,glean:88,score:89,p:"critical",hotCerts:["CCNA"],certs:["CCNA","CDA","Cisco certifications"],signals:"$150M+ Cisco revenue over 11 years. #1 regionally. Dell AI Factory + NVIDIA GPU specialist. AI transformation positioning. ECS arrival.",ins:"The hidden star of the ECS acquisition. 11 years at Cisco (#1 regionally, $150M+ revenue), then 5 years at Dell focused specifically on AI Factory, NVIDIA GPU platforms, and enterprise AI transformation. Explicitly positions herself as an AI transformation specialist. One month at ATG.",act:"Prioritize immediately. She's the AI transformation conversation anchor for SoCal enterprise. Get her into CXO meetings with your support."},
+  {n:"Kristin Mihalik",i:"KM",t:"Account Executive",g:"San Diego, CA",r:"west",yr:1.5,prior:"SHI Enterprise AE San Diego (10.9 yrs total) — #1 Security Seller FY23, #2 Rep FY23, President's Club FY23, California Deal of Year FY22, 6 consecutive MVP years",bg:"VAR-elite",ecs:false,star:true,glean:88,score:88,p:"critical",hotCerts:[],certs:["Account Management","Management"],signals:"#1 Security Seller FY23 at SHI San Diego. #2 Rep FY23. 6 consecutive MVP years.",ins:"The most decorated SHI alumna in the entire ATG West team — not close. 6 consecutive MVP years, #1 Security Seller, #2 rep company-wide at SHI San Diego FY23. Elite enterprise seller with deep San Diego account relationships.",act:"SoCal priority co-sell. Security seller pedigree + San Diego enterprise relationships = natural Glean governance pitch partner."},
+  {n:"Mitchell Mery",i:"MM",t:"Account Executive",g:"San Diego, CA",r:"west",yr:1.8,prior:"phData Territory Director (Snowflake channel partner) → EVOTEK Account Director → SHI Senior Microsoft Specialist (9.5 yrs)",bg:"data+Microsoft",ecs:false,star:false,glean:82,score:74,p:"high",hotCerts:[],certs:["Enterprise Software","Cloud Computing"],signals:"phData = Snowflake channel partner. SHI Microsoft Specialist 9.5 yrs. San Diego.",ins:"phData is a Snowflake-focused data consultancy — Mitchell understands the data platform story Glean needs underneath it. SHI Microsoft Specialist background means he can speak M365 + Snowflake + Glean as a unified data platform stack.",act:"Snowflake+Glean data bundle play. His phData background makes the data-layer-to-AI-search story intuitive."},
+  {n:"Gaddiel Mier",i:"GM",t:"Account Executive (ECS arrival)",g:"SoCal / Irvine area",r:"west",yr:0.1,prior:"ECS Account Executive (3.7 yrs) → Irvine Company Sr. Dir IT Infrastructure & Operations (16 yrs)",bg:"CIO-turned-sales+ECS",ecs:true,star:false,glean:82,score:78,p:"high",hotCerts:["Palo Alto PSE Strata Professional"],certs:["CYBERFORCE Defender","Palo Alto PSE Strata Professional","HPE Sales Certified"],signals:"Former Sr. Director IT Infra Irvine Company (600+ sites, 4000+ users). Implemented Zero Trust with Palo Alto. ECS arrival.",ins:"Former Sr. Director IT Infrastructure for 16 years at Irvine Company — implemented Zero Trust with Palo Alto at scale. CIO-level credibility in SoCal real estate, construction, and professional services.",act:"SoCal enterprise co-sell. His CIO-level credibility + Palo Alto PSE cert = executive AI governance conversation."},
+  {n:"Victoria Lewkowitz",i:"VL",t:"Account Executive (Desert States)",g:"Phoenix, AZ",r:"west",yr:1.1,prior:"SHI Public Sector AE Phoenix (2.9 yrs) — Arizona Local Government territory",bg:"gov-specialist",ecs:false,star:false,glean:78,score:72,p:"high",hotCerts:["DGX AI Competency","Okta CIC Sales Accreditation","Okta WIC Sales Accreditation"],certs:["Okta CIC Sales Accreditation","Okta WIC Sales Accreditation","DGX AI Competency","Varonis Partner University","Hitachi Solution Selling"],signals:"NVIDIA DGX AI Competency cert — only formal AI infrastructure cert in the org. Okta WIC+CIC accreditations. Harvard BA Government. Phoenix, not West Coast.",ins:"NVIDIA DGX AI Competency cert — the only formal AI infrastructure certification in the entire ATG org. Okta WIC+CIC + Harvard Government + Arizona gov territory = uniquely positioned for AI governance conversation in Desert States.",act:"AI governance play for Arizona gov accounts. Her DGX AI cert + Okta identity accreditations = most credentialed junior rep in the West for your motion."},
+  {n:"Van Cain",i:"VC",t:"Account Executive",g:"Napa, CA (Northern California)",r:"west",yr:1.8,prior:"Gartner Senior AE Nevada → 66degrees Enterprise AE West (Google Cloud Premier Partner) → Rackspace Google AE West → SHI Strategic AE DFW (7.2 yrs)",bg:"cloud+analyst",ecs:false,star:false,glean:78,score:72,p:"high",hotCerts:["Google Cloud Sales Credential"],certs:["Google Cloud Sales Credential","Microsoft Certified Professional","Varonis Partner University"],signals:"66degrees = Google Cloud Premier Partner. Google Cloud credential. Napa/NorCal base.",ins:"Google Cloud Premier Partner background (66degrees) + GCP credential = strong multi-cloud AI story. Napa/NorCal covers a distinct enterprise market from SoCal. Gartner background = executive conversation fluency.",act:"Google Cloud + Glean integration story. His GCP background makes the cloud data layer conversation intuitive."},
+  {n:"Lauren Wong",i:"LW",t:"Account Executive (ECS arrival)",g:"Los Angeles, CA",r:"west",yr:0.1,prior:"ECS Account Executive Southwest (5 mo) → ECS Account Manager SoCal (2 yrs) → Oracle NetSuite North America #1 team",bg:"ECS+SaaS",ecs:true,star:false,glean:72,score:67,p:"medium",hotCerts:["Prompt Design in Vertex AI"],certs:["Pure Storage Sales Professional","HPE Sales Certified","Zerto Certified","Prompt Design in Vertex AI"],signals:"Google Vertex AI Prompt Design cert. Girls Who Code alumna + advisor. Oracle NetSuite North America #1 team. ECS carry-over.",ins:"Vertex AI cert makes her one of the very few reps with hands-on AI tooling experience. Girls Who Code background signals genuine tech affinity. ECS carry-over with SoCal account relationships.",act:"LA ECS integration. Her Vertex AI cert and tech enthusiasm make her a natural early AI enablement adopter."},
+  {n:"Luke Holtz",i:"LH",t:"Account Executive",g:"Seattle, WA",r:"west",yr:1.6,prior:"Softchoice District Sales Leader Seattle (9 yrs total) → 2x President's Club",bg:"VAR",ecs:false,star:false,glean:70,score:65,p:"medium",hotCerts:[],certs:["Presidents Club (2x)"],signals:"9 years at Softchoice Seattle. 2x President's Club. ATG's only Pacific Northwest presence.",ins:"9 years at Softchoice (major Canadian VAR) in Seattle means genuine relationship depth in the Pacific Northwest. ATG's only PNW presence — meaningful enterprise coverage in a market the company barely has footprint in.",act:"Pacific Northwest market anchor. Group AI enablement, then 1:1 on PNW enterprise account priorities."},
+  {n:"Michael Foley",i:"MF",t:"Account Executive (ECS arrival)",g:"Los Angeles, CA",r:"west",yr:0.1,prior:"ECS Account Executive (6.4 yrs) → ECS Sales Ops & Inside Sales (8.3 yrs total)",bg:"ECS-infrastructure",ecs:true,star:false,glean:65,score:62,p:"medium",hotCerts:[],certs:["HP Storage","Microsoft","Fortinet","Rubrik","Nutanix","VMware","Veeam"],signals:"14.8 years total at ECS. LA market. Deep infrastructure certs. ECS institutional memory.",ins:"Nearly 15 years at ECS — the institutional memory of the ECS organization. He knows every LA account relationship ECS has built. Treat him as an account intelligence resource for territory mapping.",act:"ECS account intel source. Use his 15-year ECS relationship map to identify SoCal Glean ICP targets."},
+  {n:"Kady Young",i:"KY",t:"Account Executive (ECS carry-over)",g:"Santa Monica / LA, CA",r:"west",yr:3,prior:"ECS Enterprise AE (3 yrs) → Augtera Networks AE → Forest River Inc. Senior AE (11.7 yrs)",bg:"ECS+supply-chain",ecs:true,star:false,glean:68,score:65,p:"medium",hotCerts:[],certs:["Google Cloud Platform","IT Consulting"],signals:"Explicitly focuses on aerospace vertical. Mentions AI infrastructure focus. ECS account relationships across LA aerospace.",ins:"Her LinkedIn summary explicitly calls out aerospace — a niche with strong AI/ML and data security requirements that ATG doesn't currently address with a dedicated narrative. ECS background in SoCal aerospace and defense.",act:"Aerospace AI infrastructure wedge. Her vertical + ATG's security partners (Palo Alto, CyberArk) = compliance and AI readiness story."},
+  {n:"Austin Baker",i:"AB",t:"Enterprise Account Executive",g:"Atlanta, GA",r:"east",yr:3.4,prior:"SecurEnds VP Sales (first employee, grew to $7.5M ARR) → Stanley Black & Decker IoT/Compliance → Guest Lecturer Georgia Tech → Harvard Global Executive Program (Negotiation)",bg:"startup-founder+IoT",ecs:false,star:true,glean:82,score:87,p:"critical",hotCerts:["Okta WIC Service Delivery Specialized","BeyondTrust CSP"],certs:["Okta WIC Service Delivery Specialized","BeyondTrust CSP","Nutanix CSR","Sales Management"],signals:"First employee at IAM startup, grew to $7.5M ARR. ISSA Board of Directors. Harvard Negotiation. Okta WIC + BeyondTrust PAM.",ins:"First employee at a cybersecurity IAM startup (SecurEnds) that he helped grow to $7.5M ARR. Harvard Negotiation program. ISSA Board member. Okta WIC + BeyondTrust PAM certs = the full identity and privileged access stack. His startup DNA means he thinks about customer problems differently than career VAR reps.",act:"Atlanta priority. IAM startup background + Okta/BeyondTrust certs = CIO-level AI governance conversation ready. Engage as a strategic peer."},
+  {n:"Patrick Carroll",i:"PC",t:"Account Manager – Tri-State",g:"New York City, NY",r:"east",yr:1,prior:"SHI Enterprise Select AE NYC Named (7.3 yrs) — Rookie of Year, 2x Regional MVP, 4x Client Experience Award",bg:"mega-VAR NYC",ecs:false,star:false,glean:82,score:81,p:"high",hotCerts:[],certs:["Business Strategy","Account Management"],signals:"Building ATG's Tri-State market from scratch. 7.3 yrs SHI NYC Named accounts. Multiple MVP awards.",ins:"Literally building ATG's Tri-State presence from scratch. NYC financial services enterprise accounts are the single largest ACV opportunity in the East team. He needs an AI narrative to differentiate ATG from every other VAR calling on the same accounts.",act:"NYC priority. Financial services + enterprise AI governance is your biggest single-market ACV opportunity. Support his market-build with the executive AI narrative."},
+  {n:"Patrick Donohue",i:"PD",t:"Territory Manager – Northeast",g:"Boston, MA",r:"east",yr:1.5,prior:"Rapid7 Enterprise Sales Director Central (7 yrs managing teams of 7-10 AEs across 13 states)",bg:"cybersecurity-leader",ecs:false,star:false,glean:82,score:83,p:"high",hotCerts:[],certs:["Sales Management"],signals:"7 years at Rapid7 managing 7-10 AE teams. Enterprise Sales Director level. Boston Northeast.",ins:"Managed sales teams at Rapid7 for most of his career — an operator in an IC role. His 7-year Rapid7 background means deep cybersecurity relationships across the Northeast. The Glean security narrative lands cleanly with someone who spent years selling security outcomes.",act:"Northeast cybersecurity accounts. His Rapid7 background makes the Glean governance/security story immediately credible."},
+  {n:"Michael Irene",i:"MI",t:"Enterprise Account Executive",g:"Miami, FL",r:"east",yr:2.5,prior:"Varonis Enterprise Sales Director FL (brief) → Rubrik Enterprise AE Miami (3.8 yrs) → Citrix Regional Sales Manager (5.5 yrs)",bg:"data-security+vendor",ecs:false,star:false,glean:85,score:82,p:"high",hotCerts:[],certs:["Account Management","CRM"],signals:"Varonis Enterprise Sales Director background. Rubrik Enterprise AE. Citrix RSM. Miami enterprise.",ins:"Varonis + Rubrik + Citrix background = data security, backup, and digital workspace — three pillars of the Glean security stack. His Varonis experience means the data classification conversation is native.",act:"Varonis+Glean data governance play in South Florida. His background maps directly to the combined security pitch."},
+  {n:"Eldar Bolin",i:"EB",t:"Account Manager",g:"Miami, FL",r:"east",yr:3.4,prior:"Nutanix Enterprise AM Miami (2 yrs) → Varonis Enterprise AM Tampa (2 yrs) → Citrix Senior Territory Manager Ft. Lauderdale",bg:"infra+data-security",ecs:false,star:false,glean:80,score:78,p:"high",hotCerts:[],certs:["Nutanix NCSR L1/L2/L3"],signals:"Varonis Enterprise AM background. Nutanix Enterprise AM. Citrix. Miami. Spanish fluent.",ins:"Varonis background (like Colleen Wyzykowski in Minneapolis) means data classification and governance conversation is native. Combined Varonis + Nutanix + Citrix background maps cleanly to the infrastructure + AI governance bundle.",act:"Varonis+Glean data governance play in South Florida alongside Irene."},
+  {n:"Kevin Rubin",i:"KR2",t:"Territory Account Manager",g:"Roswell, GA (Atlanta metro)",r:"east",yr:2.8,prior:"IBM Enterprise AE Intelligent Automation/AIOps (11 mo) → Citrix Enterprise Networking Specialist (5.9 yrs)",bg:"networking+AIOps",ecs:false,star:false,glean:72,score:70,p:"high",hotCerts:[],certs:["Nutanix NCSR 2022"],signals:"IBM AIOps background (Application Performance Management, observability). Citrix 5.9 yrs. Atlanta.",ins:"IBM AIOps background — sold AI-driven IT operations solutions. That mental model (AI monitoring, observability) translates directly to the Glean AI knowledge management story.",act:"AIOps-to-Glean bridge. Frame Glean as enterprise knowledge observability — a concept he already understands from IBM."},
+  {n:"Jordan Thompson",i:"JT",t:"Account Executive",g:"Greenville, SC",r:"east",yr:2.6,prior:"Onapsis Enterprise AE (SAP security) → SecurEnds Enterprise AE + Sales Dir (IAM access certification)",bg:"IAM+ERP-security",ecs:false,star:false,glean:75,score:73,p:"high",hotCerts:[],certs:["Business Development","CRM"],signals:"SecurEnds overlap with Austin Baker. Onapsis = SAP security. Greenville SC. IAM and ERP security.",ins:"Jordan and Austin Baker both worked at SecurEnds — pre-existing relationship and shared IAM mental model. Onapsis background adds ERP security relationships most VARs don't have.",act:"Co-sell pair with Austin Baker. Shared SecurEnds DNA = natural collaboration. ERP security accounts are underexplored Glean opportunities."},
+  {n:"Ryan Murray",i:"RM",t:"Account Executive",g:"New York City / NJ",r:"east",yr:0.8,prior:"SHI 13.9 yrs (Strategic AE NJ → District Sales Manager NYC 10-person team)",bg:"mega-VAR NYC",ecs:false,star:false,glean:75,score:74,p:"high",hotCerts:[],certs:["Sales","Account Management"],signals:"13.9 years at SHI. NYC metro. Managed 10-person team. Member of 'The Post' (athletes-turned-business-leaders).",ins:"13.9 years at SHI with NYC/NJ enterprise relationships — alongside Carroll they are the two pillars of ATG's Tri-State market build. His executive network (The Post) gives access beyond traditional tech circles.",act:"NYC market build alongside Carroll. His executive network + SHI account relationships = significant untapped CXO access potential."}
+];
+
+const TRAVEL = [
+  {cls:"p1",week:"Week 1–2 · Anchor",city:"Houston, TX",why:"HQ. Largest rep cluster. Phil Wilhelm + 8 Central Command ICs. Financial services, healthcare, public sector density. Pipeline audit, stakeholder mapping, deal triage cadence launch.",reps:"Phil Wilhelm, Brandon Brennan, Corbin Orr, TJ Brown, Cody Zavala, Daniel Guzman, April Rider",glean:"High",urgency:98},
+  {cls:"p1",week:"Week 2–3 · Critical",city:"Dallas / North TX",why:"SW region hub under Hunter Wright. 12-rep team — largest sub-region. Enterprise accounts across tech, finance, logistics. Jeff Versfelt (Okta Director pedigree) + Quinn Reckmeyer (7.5 yr veteran) are co-sell priorities.",reps:"Hunter Wright, Jeff Versfelt, Quinn Reckmeyer, Michael Karry, Kyle Bryan",glean:"High",urgency:90},
+  {cls:"p2",week:"Week 4–5 · High",city:"LA / SoCal (ECS territory)",why:"Freshly acquired ECS territory. 6 new reps who don't know the ATG motion. Tamara Crawford (Cisco $150M+ revenue, Dell AI specialist) is your most important introduction. First AI strategy director visit signals investment seriousness.",reps:"Amy Serafin, Tamara Crawford, Kristin Mihalik, Gaddiel Mier, Lauren Wong, Michael Foley, Kady Young",glean:"Very High",urgency:85},
+  {cls:"p2",week:"Week 5–6 · High",city:"Denver / Rockies",why:"Kevin Roof's 8.9-year territory. Trevor Gibb (SLC, 152% quota 2025) is the single most impressive IC in ATG. Highest Glean ICP density in the portfolio. Bob Richman (former Okta AE) rounds out the Rockies Okta story.",reps:"Kevin Roof, Trevor Gibb, Bob Richman, Evan Harrison",glean:"Very High",urgency:80},
+  {cls:"p3",week:"Week 7–8 · Medium",city:"Atlanta / Southeast",why:"Kyle Perettine's team from Miami/Atlanta. Austin Baker (IAM startup founder, Harvard Negotiation) is your priority engagement. Jordan Thompson co-sells naturally with Baker. Kevin Rubin (IBM AIOps) needs the Glean-as-observability framing.",reps:"Kyle Perettine, Austin Baker, Jordan Thompson, Kevin Rubin",glean:"Medium",urgency:65},
+  {cls:"p3",week:"Week 8–10 · Medium",city:"NYC Tri-State / Boston",why:"Patrick Carroll is building ATG's Tri-State market from scratch — NYC financial services is the biggest single-market ACV opportunity in the East. Ryan Murray (13.9 yr SHI, executive network) + Patrick Donohue (Rapid7 7 yrs) round out the Northeast story.",reps:"Patrick Carroll, Ryan Murray, Patrick Donohue",glean:"Medium-High",urgency:60}
+];
+
+const FINDINGS = [
+  {num:1,color:"#993C1D",title:"Kipp Seifert is a Regional Director, not an Account Manager",body:"The org roster lists him as an AM. His LinkedIn confirms he is a Regional Sales Director with 8+ years of ATG tenure — one of the longest-tenured people in the company. He operates from St. Louis covering a Central sub-region independently. Engaging him as an AM would be a significant relationship error. Verify his structure with Phil before any contact."},
+  {num:2,color:"#1E5FA5",title:"Tamara Crawford is the hidden star of the ECS acquisition",body:"11+ years at Cisco (consistently #1 regionally, $150M+ in revenue, 115%+ quota every year for 10 consecutive years), then 5 years at Dell focused specifically on AI Factory, NVIDIA GPU platforms, and enterprise AI transformation. She explicitly positions herself as an AI transformation specialist on LinkedIn. She joined ATG in March 2026 and almost certainly does not have the Glean narrative yet."},
+  {num:3,color:"#854F0B",title:"Victoria Lewkowitz is in Phoenix, not on the West Coast",body:"The org roster places her under Amy Serafin's West team, creating an assumption she was covering SoCal or NorCal. Her profile confirms she is in Phoenix covering the Desert States. She holds the only NVIDIA DGX AI Competency certification in the entire ATG org, alongside Okta WIC and CIC accreditations. The Desert States market is distinct and underexplored."},
+  {num:4,color:"#534AB7",title:"Three reps have formal AI credentials — they are your internal champions",body:"Victoria Lewkowitz (NVIDIA DGX AI Competency), Lauren Wong (Google Vertex AI Prompt Design), and Daniel Guzman (lists 'Artificial Intelligence (AI)' as a LinkedIn top skill — the only rep in the org to do so). These three will adopt the AI motion faster and pull others along organically. Invest in them early as internal champions."},
+  {num:5,color:"#0F6E56",title:"Six Okta-credentialed reps exist across the org — your Glean co-sell network",body:"Jeff Versfelt (former Okta Director TX+LA), Trevor Gibb (former Okta RSM Enterprise), Bob Richman (former Okta AE Denver), Daniel Guzman (Okta WIC+CIC accreditations), Victoria Lewkowitz (Okta WIC+CIC accreditations), and Austin Baker (Okta WIC Service Delivery Specialized). The Glean security story runs directly through Okta identity governance — these six are your natural co-sell partners for any account where identity is the CISO conversation."},
+  {num:6,color:"#0D1B3E",title:"Austin Baker and Jordan Thompson both worked at SecurEnds — natural SE co-sell pair",body:"SecurEnds is an IAM access certification startup. Austin Baker was the first employee and grew it to $7.5M ARR. Jordan Thompson worked there as Enterprise AE and Sales Director. They have a pre-existing relationship and shared IAM mental model. Their background maps directly to the AI agent governance story. Deploy them as a natural co-selling pair in the Southeast."},
+  {num:7,color:"#854F0B",title:"ECS acquisition brought 6 reps into the ATG motion in a single month — March 2026",body:"Tamara Crawford, Gaddiel Mier, Lauren Wong, Michael Foley, Kady Young, and Kristin Mihalik (via SoCal territory) all transitioned from ECS to ATG in March 2026. None of them have been introduced to the ATG partner portfolio, the Glean narrative, or the AI governance story. The West visit is partly about making these six feel invested in — not just acquired. First impressions determine retention."},
+  {num:8,color:"#0F6E56",title:"Kris Kubelka and Gaddiel Mier are both former C-suite IT leaders",body:"Kubelka was a CTO (healthcare startup) and CIO (pipeline company) before moving into sales. Mier was Sr. Director of IT Infrastructure for Irvine Company (600+ sites, 4,000+ users) for 16 years. Both now carry AM-level titles. Their executive IT leadership credibility in C-suite conversations is irreplaceable — deploy them as co-presenters in senior meetings where no other rep can match the peer credibility."},
+  {num:9,color:"#185FA5",title:"Geography is more distributed than the roster implies — key corrections",body:"Rob Brickweg (Minneapolis, covers MN/SD), Colleen Wyzykowski (Minneapolis, covers MN/ND), Kipp Seifert (St. Louis, covers Central sub-region), Luke Holtz (Seattle — ATG's only Pacific Northwest presence), Van Cain (Napa, covers Northern California not SoCal), Eldar Bolin (Miami, not Atlanta metro), Jordan Thompson (Greenville SC, not Atlanta), Victoria Lewkowitz (Phoenix, not West Coast). Travel planning and territory assumptions need to account for these corrections."}
+];
+
+// ── BUILD FUNCTIONS ──
+let currentFilter = "all";
+let currentSort = {col: "score", dir: -1};
+let searchQuery = "";
+
+function scoreColor(s) { return s >= 88 ? "#0F6E56" : s >= 78 ? "#185FA5" : "#854F0B"; }
+function avColor(p) { return p === "critical" ? "#FAECE7" : p === "high" ? "#FAEEDA" : "#E1F5EE"; }
+function avText(p) { return p === "critical" ? "#993C1D" : p === "high" ? "#854F0B" : "#0F6E56"; }
+
+function buildRoster() {
+  let data = REPS.filter(r => {
+    if (currentFilter === "critical") return r.p === "critical";
+    if (currentFilter === "high") return r.p === "high";
+    if (currentFilter === "central") return r.r === "central";
+    if (currentFilter === "west") return r.r === "west";
+    if (currentFilter === "east") return r.r === "east";
+    if (currentFilter === "ecs") return r.ecs;
+    if (currentFilter === "star") return r.star;
+    if (currentFilter === "veteran") return r.yr >= 5;
+    return true;
+  });
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    data = data.filter(r =>
+      r.n.toLowerCase().includes(q) || r.g.toLowerCase().includes(q) ||
+      r.bg.toLowerCase().includes(q) || r.t.toLowerCase().includes(q) ||
+      r.signals.toLowerCase().includes(q) || r.prior.toLowerCase().includes(q)
+    );
+  }
+
+  const col = currentSort.col, dir = currentSort.dir;
+  data.sort((a, b) => {
+    const av = a[col], bv = b[col];
+    if (typeof av === "number") return (av - bv) * dir;
+    return String(av).localeCompare(String(bv)) * dir;
+  });
+
+  const body = document.getElementById("roster-body");
+  body.innerHTML = data.map(r => {
+    const sc = scoreColor(r.glean);
+    const rowClass = r.star ? "star-row" : "";
+    return `<tr class="${rowClass}" onclick="showDetail('${r.i}')">
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:30px;height:30px;border-radius:50%;background:${avColor(r.p)};color:${avText(r.p)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${r.i}</div>
+          <div>
+            <div class="rep-name">${r.n}${r.star ? '<span class="star-icon">★</span>' : ""}</div>
+            ${r.ecs ? '<span class="badge badge-ecs">ECS</span>' : ""}
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="rep-title">${r.t}</div>
+        <div class="rep-geo">${r.g}</div>
+      </td>
+      <td>${r.yr < 1 ? Math.round(r.yr * 12) + "mo" : r.yr.toFixed(1) + "yr"}</td>
+      <td><span class="badge badge-${r.r}">${r.r === "central" ? "Central" : r.r === "west" ? "West" : "East/SE"}</span></td>
+      <td style="max-width:160px;font-size:12px;color:#555">${r.bg}</td>
+      <td style="max-width:200px;font-size:11px;color:#777;line-height:1.4">${r.signals.substring(0, 90)}${r.signals.length > 90 ? "…" : ""}</td>
+      <td>
+        <div class="score-wrap">
+          <div class="score-bar"><div class="score-fill" style="width:${r.glean}%;background:${sc}"></div></div>
+          <span class="score-num" style="color:${sc}">${r.glean}</span>
+        </div>
+      </td>
+      <td><span class="badge badge-${r.p}">${r.p.toUpperCase()}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function showDetail(id) {
+  const r = REPS.find(x => x.i === id);
+  if (!r) return;
+  const slot = document.getElementById("detail-slot");
+  const pc = r.p === "critical" ? "#993C1D" : r.p === "high" ? "#854F0B" : "#0F6E56";
+  const sc = scoreColor(r.glean);
+  slot.innerHTML = `
+    <span class="dp-close" onclick="closeDetail()">✕</span>
+    <div class="dp-header">
+      <div class="dp-avatar" style="background:${avColor(r.p)};color:${avText(r.p)}">${r.i}</div>
+      <div style="flex:1">
+        <div class="dp-name">${r.n}${r.star ? ' <span style="color:#F59E0B">★</span>' : ""}</div>
+        <div class="dp-subtitle">${r.t} · ${r.g}</div>
+        <div style="margin-top:6px"><span class="badge badge-${r.p}">${r.p.toUpperCase()}</span> <span class="badge badge-${r.r}">${r.r === "central" ? "Central" : r.r === "west" ? "West" : "East/SE"}</span>${r.ecs ? ' <span class="badge badge-ecs">ECS arrival</span>' : ""}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="dp-score-big" style="color:${pc}">${r.score}</div>
+        <div style="font-size:11px;color:#999">priority score</div>
+      </div>
+    </div>
+    <div class="dp-grid">
+      <div class="dp-field"><div class="dp-field-label">ATG tenure</div><div class="dp-field-val">${r.yr < 1 ? Math.round(r.yr * 12) + " months" : r.yr.toFixed(1) + " years"}</div></div>
+      <div class="dp-field"><div class="dp-field-label">Real location</div><div class="dp-field-val">${r.g}</div></div>
+      <div class="dp-field"><div class="dp-field-label">Glean ICP fit</div><div class="dp-field-val" style="color:${sc}">${r.glean}/100</div></div>
+      <div class="dp-field" style="grid-column:1/-1"><div class="dp-field-label">Career background</div><div class="dp-field-val" style="font-weight:400;font-size:12px;line-height:1.5">${r.prior}</div></div>
+    </div>
+    ${r.hotCerts.length ? `<div class="cert-tags">${r.certs.map(c => `<span class="cert-tag${r.hotCerts.includes(c) ? " hot" : ""}">${c}</span>`).join("")}</div>` : ""}
+    <div class="insight-block insight-intel"><div class="ib-label">Intelligence</div>${r.ins}</div>
+    <div class="insight-block insight-action"><div class="ib-label">Recommended action</div>${r.act}</div>
+    <div class="dp-actions">
+      <button onclick="alert('Use the LinkedIn URL for ${r.n.replace(/'/g,"\\'")} to find and connect on LinkedIn. Mention your shared ATG role in the connection note.')">LinkedIn approach</button>
+      <button onclick="generateCoSell('${r.i}')">Co-sell angle</button>
+    </div>`;
+  slot.classList.add("open");
+  slot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  document.querySelectorAll(".tbl tbody tr").forEach(tr => tr.classList.remove("selected"));
+  event && event.target && event.target.closest("tr") && event.target.closest("tr").classList.add("selected");
+}
+
+function generateCoSell(id) {
+  const r = REPS.find(x => x.i === id);
+  if (!r) return;
+  const angles = {
+    "JV": "Jeff's Okta Director background is the key. Open with: 'You know the identity motion better than anyone. Glean's security story runs directly through Okta — every permission Okta manages, Glean respects in real time. That's the objection we pre-empt together before the CISO is even in the room.'",
+    "BB": "Brandon's CyberArk CSP is the unlock. Open with: 'You can speak to CISO-level permissions governance natively. Glean surfaces what CyberArk already manages — it makes existing investments visible, not replaceable. Let's build the combined pitch before our first joint account visit.'",
+    "TG": "Trevor is MEDDPICC trained. Open with a structured business case: 'Here's the economic buyer, here's the quantified value ($X per knowledge worker per year from Forrester), here's the identified pain. What's the compelling event we're building toward?' Skip the product pitch entirely.",
+    "CW": "Colleen is the Varonis expert. Open with: 'The bundle writes itself. Glean surfaces the data risk, Varonis remediates it. You close the Varonis side, I close Glean. For accounts with both problems, we're a complete solution no one else can offer.'",
+    "DG": "Daniel's Okta WIC+CIC accreditations + AI as a LinkedIn skill = he's already on the path. Open with: 'You're the only rep in the org who lists AI as a top skill. Let's make that mean something — I want to build the government AI readiness narrative around your DIR contract access and identity credentials.'",
+    "KK": "Kris is a former CTO and CIO. Open with: 'I don't want you selling Glean to technical buyers. I want you in C-suite rooms where your IT leadership background creates instant credibility I can't replicate. You open the door; I'll run the AI transformation narrative once we're inside.'",
+    "TC": "Tamara spent 5 years at Dell on AI Factory and NVIDIA platforms. Open with: 'You already know the AI infrastructure conversation. Glean is the enterprise knowledge layer that sits above the infrastructure you know cold. Your SoCal enterprise relationships + your AI vocabulary = the fastest path to executive-level AI transformation deals in this region.'",
+    "KM": "Kristin is #1 security seller in San Diego. Open with: 'Your security track record is the credibility. Glean's governance story is the hook. Every account where you've built CISO relationships is a Glean conversation waiting to happen — I'll run the AI narrative if you handle the introduction.'",
+    "AB": "Austin grew a cybersecurity IAM startup to $7.5M ARR as the first employee. Open with: 'You've been on the other side of this table. You know what a real security buyer looks like and what they actually care about. I want your help qualifying which Atlanta accounts are genuine AI governance buyers vs. tire-kickers.'"
+  };
+  const angle = angles[id] || `For ${r.n}: lead with their ${r.bg} background as common ground. Their experience in ${r.prior.split("→")[0]} is your opening for the Glean governance story. ${r.act}`;
+  alert(`CO-SELL ANGLE: ${r.n}\n\n${angle}`);
+}
+
+function closeDetail() {
+  const slot = document.getElementById("detail-slot");
+  slot.classList.remove("open");
+  slot.innerHTML = "";
+  document.querySelectorAll(".tbl tbody tr").forEach(tr => tr.classList.remove("selected"));
+}
+
+function applyFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  buildRoster();
+}
+
+function searchRoster(q) {
+  searchQuery = q;
+  buildRoster();
+}
+
+function sortTable(col) {
+  if (currentSort.col === col) currentSort.dir *= -1;
+  else { currentSort.col = col; currentSort.dir = -1; }
+  document.querySelectorAll(".tbl thead th").forEach(th => {
+    th.classList.remove("sorted");
+    const arrow = th.querySelector(".sort-arrow");
+    if (arrow) arrow.textContent = "↕";
+  });
+  const headers = ["n", "t", "yr", "r", null, null, "glean", "score"];
+  const idx = headers.indexOf(col);
+  if (idx >= 0) {
+    const ths = document.querySelectorAll(".tbl thead th");
+    if (ths[idx]) {
+      ths[idx].classList.add("sorted");
+      const arrow = ths[idx].querySelector(".sort-arrow");
+      if (arrow) arrow.textContent = currentSort.dir === 1 ? "↑" : "↓";
+    }
+  }
+  buildRoster();
+}
+
+function buildStars() {
+  const stars = REPS.filter(r => r.star);
+  const colors = { critical: "#993C1D", high: "#854F0B", medium: "#0F6E56" };
+  document.getElementById("star-grid").innerHTML = stars.map(r => {
+    const c = colors[r.p] || "#185FA5";
+    return `<div class="star-card" onclick="showPage('roster');setTimeout(()=>showDetail('${r.i}'),100)">
+      <div class="accent" style="background:${c}"></div>
+      <div class="star-card-header">
+        <div style="width:42px;height:42px;border-radius:50%;background:${avColor(r.p)};color:${avText(r.p)};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${r.i}</div>
+        <div style="flex:1">
+          <div class="star-card-name">${r.n} <span style="color:#F59E0B;font-size:14px">★</span></div>
+          <div class="star-card-role">${r.t} · ${r.g}</div>
+        </div>
+        <div>
+          <div class="star-card-score" style="color:${c}">${r.score}</div>
+          <div style="font-size:10px;color:#999;text-align:right">/100</div>
+        </div>
+      </div>
+      <div class="star-card-insight">${r.ins.substring(0, 220)}${r.ins.length > 220 ? "…" : ""}</div>
+      <div class="star-card-action">→ ${r.act}</div>
+    </div>`;
+  }).join("");
+}
+
+function buildTravel() {
+  const urgencyColors = { p1: "#993C1D", p2: "#854F0B", p3: "#0F6E56" };
+  document.getElementById("travel-grid").innerHTML = TRAVEL.map(t => `
+    <div class="travel-card ${t.cls}">
+      <div class="travel-week">${t.week}</div>
+      <div class="travel-city">${t.city}</div>
+      <div class="travel-why">${t.why}</div>
+      <div class="travel-reps">Key reps: ${t.reps}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:6px">
+        <span>Glean ICP: <strong>${t.glean}</strong></span>
+        <span>Urgency: <strong>${t.urgency}%</strong></span>
+      </div>
+      <div class="travel-urgency"><div class="travel-urgency-fill" style="width:${t.urgency}%;background:${urgencyColors[t.cls]}"></div></div>
+    </div>`).join("");
+}
+
+function buildFindings() {
+  document.getElementById("findings-list").innerHTML = FINDINGS.map(f => `
+    <div class="finding-card">
+      <div class="finding-title">
+        <div class="finding-num" style="background:${f.color}">${f.num}</div>
+        ${f.title}
+      </div>
+      <div class="finding-body">${f.body}</div>
+    </div>`).join("");
+}
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("page-" + id).classList.add("active");
+  const tabs = ["roster", "stars", "travel", "findings", "setup"];
+  const tabEls = document.querySelectorAll(".nav-tab");
+  const idx = tabs.indexOf(id);
+  if (idx >= 0 && tabEls[idx]) tabEls[idx].classList.add("active");
+}
+
+// INIT
+buildRoster();
+buildStars();
+buildTravel();
+buildFindings();
+</script>
+</body>
+</html>
