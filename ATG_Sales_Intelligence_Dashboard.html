@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATG Sales Intelligence Dashboard — Chris Hogan, AI Strategy Director</title>
+<style>
+  :root {
+    --navy: #0D1B3E; --blue: #1E6FFA; --teal: #00B4D8; --gold: #F59E0B;
+    --red: #DC2626; --amber: #D97706; --green: #059669; --purple: #7C3AED;
+    --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+    --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
+    --gray-900: #111827; --white: #FFFFFF;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.06); --shadow: 0 2px 8px rgba(0,0,0,.10);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,.14); --radius: 10px; --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: var(--gray-100); color: var(--gray-800); font-size: 14px; line-height: 1.6; }
+
+  /* ── HEADER ── */
+  .site-header { background: var(--navy); color: white; padding: 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg); }
+  .header-inner { max-width: 1400px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .header-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+  .header-sub { font-size: 12px; color: var(--teal); margin-top: 2px; }
+  .header-meta { display: flex; gap: 12px; align-items: center; }
+  .coverage-pill { background: rgba(0,180,216,.15); border: 1px solid rgba(0,180,216,.4); color: var(--teal); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+
+  /* ── NAV TABS ── */
+  .nav-tabs { background: var(--white); border-bottom: 1px solid var(--gray-200); position: sticky; top: 61px; z-index: 90; box-shadow: var(--shadow-sm); }
+  .nav-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; gap: 0; }
+  .nav-tab { padding: 13px 20px; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; border-bottom: 3px solid transparent; transition: all .15s; white-space: nowrap; }
+  .nav-tab:hover { color: var(--blue); background: var(--gray-50); }
+  .nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); background: var(--white); font-weight: 600; }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── STAT CARDS ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); }
+  .stat-val { font-size: 28px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--gray-500); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .stat-card.accent { border-top: 3px solid var(--blue); }
+
+  /* ── ALERT BANNERS ── */
+  .alert { border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; margin-bottom: 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .alert-warning { background: #FFFBEB; border: 1px solid #FCD34D; border-left: 4px solid var(--amber); color: #92400E; }
+  .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; border-left: 4px solid var(--blue); color: #1E40AF; }
+  .alert-success { background: #ECFDF5; border: 1px solid #A7F3D0; border-left: 4px solid var(--green); color: #065F46; }
+  .alert-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── FILTER ROW ── */
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .filter-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
+  .filter-btn { padding: 5px 12px; border: 1px solid var(--gray-300); border-radius: 20px; font-size: 12px; cursor: pointer; background: var(--white); color: var(--gray-600); transition: all .12s; white-space: nowrap; }
+  .filter-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .filter-btn.active { background: var(--blue); border-color: var(--blue); color: white; font-weight: 600; }
+  .search-box { padding: 7px 14px; border: 1px solid var(--gray-300); border-radius: 20px; font-size: 13px; outline: none; min-width: 220px; }
+  .search-box:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,111,250,.12); }
+
+  /* ── TABLE ── */
+  .tbl-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--navy); color: white; text-align: left; padding: 11px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { background: #1a2d5a; }
+  th .sort-arrow { font-size: 9px; margin-left: 4px; opacity: .5; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); font-size: 13px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F0F7FF; cursor: pointer; }
+  tr.selected td { background: #DBEAFE; }
+  .rep-name-cell { display: flex; align-items: center; gap: 8px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .av-critical { background: #FEE2E2; color: #991B1B; }
+  .av-high { background: #FEF3C7; color: #92400E; }
+  .av-medium { background: #D1FAE5; color: #065F46; }
+  .av-leader { background: #DBEAFE; color: #1E40AF; }
+  .star-icon { color: var(--gold); font-size: 13px; }
+  .ecs-tag { background: #EDE9FE; color: #5B21B6; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
+  .score-pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 12px; }
+  .score-critical { background: #FEE2E2; color: #991B1B; }
+  .score-high { background: #FEF3C7; color: #92400E; }
+  .score-medium { background: #D1FAE5; color: #065F46; }
+  .glean-bar { display: flex; align-items: center; gap: 6px; }
+  .gbar { height: 6px; border-radius: 3px; background: var(--gray-200); overflow: hidden; width: 60px; }
+  .gfill { height: 100%; border-radius: 3px; }
+  .region-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel { display: none; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-lg); border: 1px solid var(--gray-200); margin: 16px 0; overflow: hidden; }
+  .detail-panel.open { display: block; }
+  .detail-header { background: var(--navy); color: white; padding: 20px 24px; display: flex; gap: 16px; align-items: flex-start; }
+  .detail-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+  .detail-name { font-size: 20px; font-weight: 700; }
+  .detail-role { font-size: 13px; color: var(--teal); margin-top: 3px; }
+  .detail-geo { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+  .detail-score { text-align: right; flex-shrink: 0; }
+  .detail-score-num { font-size: 36px; font-weight: 800; line-height: 1; }
+  .detail-score-label { font-size: 10px; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; }
+  .detail-body { padding: 20px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .detail-field { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .detail-field-label { font-size: 10px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .detail-field-val { font-size: 13px; color: var(--gray-800); line-height: 1.5; }
+  .detail-insight { margin: 0 24px 16px; background: var(--gray-50); border-left: 4px solid var(--blue); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 16px; font-size: 13px; color: var(--gray-700); line-height: 1.7; }
+  .detail-action { margin: 0 24px 20px; background: #EFF6FF; border: 1.5px solid var(--blue); border-radius: var(--radius-sm); padding: 12px 16px; }
+  .detail-action-label { font-size: 10px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+  .detail-action-text { font-size: 13px; font-weight: 600; color: var(--navy); line-height: 1.5; }
+  .detail-certs { margin: 0 24px 20px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .cert-chip { font-size: 11px; padding: 4px 10px; border-radius: 12px; background: var(--gray-100); border: 1px solid var(--gray-200); color: var(--gray-600); }
+  .cert-chip.hot { background: #EDE9FE; border-color: #C4B5FD; color: #5B21B6; font-weight: 600; }
+  .detail-close { background: none; border: 1px solid rgba(255,255,255,.3); color: white; padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; margin-left: auto; align-self: flex-start; }
+  .detail-close:hover { background: rgba(255,255,255,.1); }
+
+  /* ── FINDINGS VIEW ── */
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .finding-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); overflow: hidden; }
+  .finding-header { padding: 14px 18px; border-bottom: 1px solid var(--gray-100); display: flex; gap: 10px; align-items: center; }
+  .finding-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .finding-title { font-size: 14px; font-weight: 700; color: var(--gray-800); }
+  .finding-list { list-style: none; padding: 0; }
+  .finding-item { padding: 10px 18px; border-bottom: 1px solid var(--gray-50); font-size: 13px; color: var(--gray-700); line-height: 1.6; display: flex; gap: 8px; }
+  .finding-item:last-child { border-bottom: none; }
+  .finding-bullet { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+
+  /* ── STARS VIEW ── */
+  .stars-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .star-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); overflow: hidden; }
+  .star-card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; gap: 12px; align-items: flex-start; }
+  .star-card-name { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .star-card-role { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+  .star-card-body { padding: 14px 20px; }
+  .star-card-insight { font-size: 13px; color: var(--gray-700); line-height: 1.7; margin-bottom: 12px; }
+  .star-card-action { background: #EFF6FF; border-left: 3px solid var(--gold); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--navy); line-height: 1.5; }
+
+  /* ── TRAVEL VIEW ── */
+  .travel-timeline { display: flex; flex-direction: column; gap: 0; }
+  .travel-item { display: flex; gap: 0; }
+  .travel-marker { display: flex; flex-direction: column; align-items: center; width: 60px; flex-shrink: 0; }
+  .travel-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .travel-line { width: 2px; background: var(--gray-200); flex: 1; min-height: 20px; }
+  .travel-content { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); padding: 16px 20px; margin: 0 0 16px 16px; flex: 1; }
+  .travel-week { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--gray-500); margin-bottom: 4px; }
+  .travel-city { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .travel-why { font-size: 13px; color: var(--gray-700); line-height: 1.65; margin-bottom: 10px; }
+  .travel-reps { font-size: 12px; color: var(--blue); font-weight: 600; }
+  .urgency-bar { height: 6px; background: var(--gray-200); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .urgency-fill { height: 100%; border-radius: 3px; }
+
+  /* ── MAP VIEW ── */
+  .map-container { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); padding: 20px; }
+  .map-legend { display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-600); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .map-note { font-size: 12px; color: var(--gray-500); margin-top: 10px; line-height: 1.5; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .section-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .section-count { font-size: 12px; background: var(--gray-100); color: var(--gray-600); padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .stat-grid { grid-template-columns: repeat(3, 1fr); }
+    .findings-grid, .stars-grid { grid-template-columns: 1fr; }
+    .detail-body { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .nav-inner { overflow-x: auto; }
+    .main { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">Alchemy Technology Group — Sales Intelligence Dashboard</div>
+      <div class="header-sub">AI Strategy Director Field Guide · Chris Hogan · Desert Den Consulting</div>
+    </div>
+    <div class="header-meta">
+      <span class="coverage-pill">98% Coverage · 42 Reps Verified</span>
+      <span style="font-size:11px;color:rgba(255,255,255,.5)">March 2026</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <div class="nav-inner">
+    <div class="nav-tab active" onclick="switchTab('roster')">Full Roster</div>
+    <div class="nav-tab" onclick="switchTab('stars')">Star Performers</div>
+    <div class="nav-tab" onclick="switchTab('findings')">Key Findings</div>
+    <div class="nav-tab" onclick="switchTab('travel')">Travel Sequence</div>
+    <div class="nav-tab" onclick="switchTab('map')">Territory Map</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════════ ROSTER VIEW ══════════ -->
+<div class="view active" id="view-roster">
+  <div class="stat-grid">
+    <div class="stat-card accent"><div class="stat-val">42</div><div class="stat-label">Reps verified</div></div>
+    <div class="stat-card accent"><div class="stat-val">98%</div><div class="stat-label">Roster coverage</div></div>
+    <div class="stat-card accent"><div class="stat-val">8</div><div class="stat-label">Star performers</div></div>
+    <div class="stat-card accent"><div class="stat-val">6</div><div class="stat-label">ECS arrivals</div></div>
+    <div class="stat-card accent"><div class="stat-val">1</div><div class="stat-label">Profile missing</div></div>
+  </div>
+  <div class="alert alert-warning">
+    <span class="alert-icon">⚠</span>
+    <span><strong>One profile still needed:</strong> Trip Leon (SW team, Hunter Wright's org). Otherwise 98% complete. Kipp Seifert is listed as an AM in the org roster but is actually a <strong>Regional Sales Director</strong> with 8+ years tenure — verify his role with Phil Wilhelm before engaging.</span>
+  </div>
+  <div class="alert alert-success">
+    <span class="alert-icon">✓</span>
+    <span><strong>ECS acquisition insight:</strong> Tamara Crawford (ECS, San Diego) is the highest-value discovery — 11+ years Cisco, 5 years Dell AI Factory, explicit AI transformation specialist. Get her into CXO accounts immediately.</span>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Region:</span>
+    <button class="filter-btn active" onclick="applyFilter('region','all',this)">All (42)</button>
+    <button class="filter-btn" onclick="applyFilter('region','central',this)">Central</button>
+    <button class="filter-btn" onclick="applyFilter('region','west',this)">West</button>
+    <button class="filter-btn" onclick="applyFilter('region','east',this)">East/SE</button>
+    <span class="filter-label" style="margin-left:8px">Priority:</span>
+    <button class="filter-btn" onclick="applyFilter('priority','critical',this)">Critical</button>
+    <button class="filter-btn" onclick="applyFilter('priority','high',this)">High</button>
+    <button class="filter-btn" onclick="applyFilter('special','star',this)">⭐ Stars</button>
+    <button class="filter-btn" onclick="applyFilter('special','ecs',this)">ECS Arrivals</button>
+    <button class="filter-btn" onclick="applyFilter('special','veteran',this)">5+ Yr Veterans</button>
+    <button class="filter-btn" onclick="applyFilter('special','new',this)">New (&lt;1yr)</button>
+    <input class="search-box" id="search-box" placeholder="Search name, location, background..." oninput="applySearch(this.value)">
+  </div>
+  <div id="detail-slot" class="detail-panel"></div>
+  <div class="tbl-wrap">
+    <table id="roster-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable('name')">Name <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortTable('title')">Title <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortTable('geo')">Location <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortTable('tenure')">Tenure <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortTable('region')">Region <span class="sort-arrow">⇅</span></th>
+          <th>Background</th>
+          <th onclick="sortTable('glean')">Glean Fit <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortTable('score')">Score <span class="sort-arrow">⇅</span></th>
+        </tr>
+      </thead>
+      <tbody id="roster-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ STARS VIEW ══════════ -->
+<div class="view" id="view-stars">
+  <div class="section-header">
+    <div class="section-title">Star Performers</div>
+    <div class="section-count">8 reps</div>
+  </div>
+  <div class="alert alert-info">
+    <span class="alert-icon">ℹ</span>
+    <span>Stars are your highest-value co-sell and relationship targets. Prioritize these 8 in your first 45 days. Each has a specific engagement framing — use it.</span>
+  </div>
+  <div class="stars-grid" id="stars-grid"></div>
+</div>
+
+<!-- ══════════ FINDINGS VIEW ══════════ -->
+<div class="view" id="view-findings">
+  <div class="section-header">
+    <div class="section-title">Key Intelligence Findings</div>
+  </div>
+  <div class="findings-grid" id="findings-grid"></div>
+</div>
+
+<!-- ══════════ TRAVEL VIEW ══════════ -->
+<div class="view" id="view-travel">
+  <div class="section-header">
+    <div class="section-title">90-Day Travel Sequence</div>
+  </div>
+  <div class="alert alert-info">
+    <span class="alert-icon">ℹ</span>
+    <span>Sequenced by compound value: rep density × Glean ICP fit × account AI maturity × strategic timing. Houston and Dallas anchor the first three weeks. LA/SoCal (ECS integration) and Denver (fastest Glean pilots) follow immediately.</span>
+  </div>
+  <div class="travel-timeline" id="travel-timeline"></div>
+</div>
+
+<!-- ══════════ MAP VIEW ══════════ -->
+<div class="view" id="view-map">
+  <div class="section-header"><div class="section-title">Territory Map</div></div>
+  <div class="map-container">
+    <svg viewBox="0 0 920 560" style="width:100%;height:auto;display:block">
+      <!-- US outline simplified -->
+      <path d="M88,82 L98,145 L82,205 L93,278 L103,325 L118,375 L133,405 L148,425 L158,445" stroke="#D1D5DB" stroke-width="1.5" fill="none"/>
+      <path d="M88,82 L200,74 L325,70 L445,67 L565,64 L685,67 L785,72 L845,82" stroke="#D1D5DB" stroke-width="1.5" fill="none"/>
+      <path d="M845,82 L852,145 L848,205 L856,265 L852,315 L844,365 L834,395 L824,425 L804,445 L789,460 L774,465" stroke="#D1D5DB" stroke-width="1.5" fill="none"/>
+      <path d="M158,445 L205,455 L265,460 L335,465 L405,467 L485,465 L565,460 L625,457 L685,455 L725,453 L774,465" stroke="#D1D5DB" stroke-width="1.5" fill="none"/>
+      <path d="M565,460 L575,470 L595,477 L625,475 L655,467" stroke="#D1D5DB" stroke-width="1.5" fill="none"/>
+      <!-- Great Lakes -->
+      <path d="M665,112 L682,110 L702,118 L712,132 L702,148 L682,151 L662,142 L657,127 Z" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1"/>
+      <path d="M712,122 L742,120 L752,132 L742,148 L722,151 L712,137 Z" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1"/>
+      <!-- Region fills -->
+      <path d="M88,82 L200,74 L325,70 L365,132 L385,205 L405,325 L335,465 L205,455 L158,445 L133,405 L118,375 L103,325 L93,278 L82,205 L98,145 Z" fill="#D1FAE5" fill-opacity="0.3"/>
+      <path d="M325,70 L445,67 L565,64 L685,67 L785,72 L845,82 L852,145 L848,205 L856,265 L852,315 L844,365 L834,395 L824,425 L804,445 L774,465 L685,455 L625,457 L565,460 L485,465 L405,467 L405,325 L385,205 L365,132 Z" fill="#DBEAFE" fill-opacity="0.3"/>
+      <path d="M158,445 L205,455 L335,465 L405,325 L385,205 L365,132 L325,70 L200,74 L88,82 L98,145 L82,205 L93,278 L103,325 L118,375 L133,405 L148,425 Z" fill="#FEF3C7" fill-opacity="0.3"/>
+      <!-- Region labels -->
+      <text x="160" y="285" font-size="12" fill="#065F46" font-weight="600" opacity=".8">West</text>
+      <text x="160" y="300" font-size="11" fill="#065F46" opacity=".7">Amy Serafin</text>
+      <text x="285" y="390" font-size="12" fill="#92400E" font-weight="600" opacity=".8">Central</text>
+      <text x="285" y="405" font-size="11" fill="#92400E" opacity=".7">Phil Wilhelm</text>
+      <text x="635" y="345" font-size="12" fill="#1E40AF" font-weight="600" opacity=".8">Southeast/East</text>
+      <text x="635" y="360" font-size="11" fill="#1E40AF" opacity=".7">Kyle Perettine</text>
+
+      <!-- CITY MARKERS -->
+      <!-- Houston HQ (critical) -->
+      <circle cx="435" cy="400" r="22" fill="#FEE2E2" fill-opacity=".6" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <circle cx="435" cy="400" r="12" fill="#DC2626"/>
+      <text x="435" y="432" font-size="10" fill="#991B1B" text-anchor="middle" font-weight="600">Houston HQ</text>
+      <text x="435" y="443" font-size="9" fill="#991B1B" text-anchor="middle">8 reps · Critical</text>
+
+      <!-- Dallas -->
+      <circle cx="400" cy="358" r="16" fill="#FEF3C7" fill-opacity=".6" stroke="#D97706" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <circle cx="400" cy="358" r="9" fill="#D97706"/>
+      <text x="400" y="382" font-size="9" fill="#92400E" text-anchor="middle" font-weight="600">Dallas/Austin</text>
+      <text x="400" y="392" font-size="8" fill="#92400E" text-anchor="middle">10 reps</text>
+
+      <!-- LA/SoCal -->
+      <circle cx="108" cy="345" r="18" fill="#FEF3C7" fill-opacity=".6" stroke="#D97706" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <circle cx="108" cy="345" r="10" fill="#D97706"/>
+      <text x="108" y="370" font-size="9" fill="#92400E" text-anchor="middle" font-weight="600">LA/SoCal</text>
+      <text x="108" y="380" font-size="8" fill="#92400E" text-anchor="middle">ECS · 5 reps</text>
+
+      <!-- San Diego -->
+      <circle cx="118" cy="388" r="12" fill="#D1FAE5" fill-opacity=".6" stroke="#059669" stroke-width="1"/>
+      <circle cx="118" cy="388" r="7" fill="#059669"/>
+      <text x="118" y="406" font-size="8" fill="#065F46" text-anchor="middle">San Diego</text>
+
+      <!-- Denver -->
+      <circle cx="318" cy="228" r="14" fill="#D1FAE5" fill-opacity=".5" stroke="#059669" stroke-width="1"/>
+      <circle cx="318" cy="228" r="8" fill="#059669"/>
+      <text x="318" y="250" font-size="9" fill="#065F46" text-anchor="middle" font-weight="600">Denver</text>
+      <text x="318" y="260" font-size="8" fill="#065F46" text-anchor="middle">3 reps · Fast pilots</text>
+
+      <!-- Salt Lake City -->
+      <circle cx="248" cy="238" r="11" fill="#D1FAE5" fill-opacity=".5" stroke="#059669" stroke-width="1"/>
+      <circle cx="248" cy="238" r="6" fill="#059669"/>
+      <text x="248" y="256" font-size="8" fill="#065F46" text-anchor="middle">SLC (Trevor)</text>
+
+      <!-- Phoenix -->
+      <circle cx="195" cy="348" r="11" fill="#D1FAE5" fill-opacity=".5" stroke="#059669" stroke-width="1"/>
+      <circle cx="195" cy="348" r="6" fill="#059669"/>
+      <text x="195" y="365" font-size="8" fill="#065F46" text-anchor="middle">Phoenix</text>
+
+      <!-- Seattle -->
+      <circle cx="98" cy="158" r="11" fill="#D1FAE5" fill-opacity=".5" stroke="#059669" stroke-width="1"/>
+      <circle cx="98" cy="158" r="6" fill="#059669"/>
+      <text x="98" y="175" font-size="8" fill="#065F46" text-anchor="middle">Seattle</text>
+
+      <!-- Minneapolis (3 reps + Lucas) -->
+      <circle cx="558" cy="148" r="14" fill="#FEF3C7" fill-opacity=".5" stroke="#D97706" stroke-width="1"/>
+      <circle cx="558" cy="148" r="8" fill="#D97706"/>
+      <text x="558" y="168" font-size="8" fill="#92400E" text-anchor="middle" font-weight="600">Minneapolis</text>
+      <text x="558" y="178" font-size="7" fill="#92400E" text-anchor="middle">4 reps + SVP</text>
+
+      <!-- St. Louis -->
+      <circle cx="610" cy="248" r="11" fill="#FEF3C7" fill-opacity=".5" stroke="#D97706" stroke-width="1"/>
+      <circle cx="610" cy="248" r="6" fill="#D97706"/>
+      <text x="610" y="265" font-size="8" fill="#92400E" text-anchor="middle">St. Louis (Kipp)</text>
+
+      <!-- Kansas City -->
+      <circle cx="568" cy="268" r="10" fill="#FEF3C7" fill-opacity=".5" stroke="#D97706" stroke-width="1"/>
+      <circle cx="568" cy="268" r="6" fill="#D97706"/>
+      <text x="568" y="284" font-size="8" fill="#92400E" text-anchor="middle">Kansas City</text>
+
+      <!-- Atlanta -->
+      <circle cx="726" cy="368" r="13" fill="#DBEAFE" fill-opacity=".5" stroke="#1E6FFA" stroke-width="1"/>
+      <circle cx="726" cy="368" r="8" fill="#1E6FFA"/>
+      <text x="726" y="388" font-size="9" fill="#1E40AF" text-anchor="middle" font-weight="600">Atlanta</text>
+      <text x="726" y="398" font-size="8" fill="#1E40AF" text-anchor="middle">Austin Baker ⭐</text>
+
+      <!-- Miami -->
+      <circle cx="782" cy="448" r="13" fill="#DBEAFE" fill-opacity=".5" stroke="#1E6FFA" stroke-width="1"/>
+      <circle cx="782" cy="448" r="8" fill="#1E6FFA"/>
+      <text x="782" y="466" font-size="9" fill="#1E40AF" text-anchor="middle" font-weight="600">Miami</text>
+      <text x="782" y="476" font-size="8" fill="#1E40AF" text-anchor="middle">3 reps</text>
+
+      <!-- NYC -->
+      <circle cx="836" cy="188" r="14" fill="#DBEAFE" fill-opacity=".5" stroke="#1E6FFA" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <circle cx="836" cy="188" r="8" fill="#1E6FFA"/>
+      <text x="836" y="208" font-size="9" fill="#1E40AF" text-anchor="middle" font-weight="600">NYC/Boston</text>
+      <text x="836" y="218" font-size="8" fill="#1E40AF" text-anchor="middle">Building market</text>
+
+      <!-- Baton Rouge -->
+      <circle cx="618" cy="410" r="11" fill="#FEF3C7" fill-opacity=".5" stroke="#D97706" stroke-width="1"/>
+      <circle cx="618" cy="410" r="6" fill="#D97706"/>
+      <text x="618" y="427" font-size="8" fill="#92400E" text-anchor="middle">Baton Rouge</text>
+
+      <!-- Greenville SC -->
+      <circle cx="780" cy="335" r="10" fill="#DBEAFE" fill-opacity=".5" stroke="#1E6FFA" stroke-width="1"/>
+      <circle cx="780" cy="335" r="6" fill="#1E6FFA"/>
+      <text x="780" y="352" font-size="8" fill="#1E40AF" text-anchor="middle">Greenville SC</text>
+
+      <!-- Napa/NorCal -->
+      <circle cx="95" cy="250" r="10" fill="#D1FAE5" fill-opacity=".5" stroke="#059669" stroke-width="1"/>
+      <circle cx="95" cy="250" r="6" fill="#059669"/>
+      <text x="95" y="268" font-size="8" fill="#065F46" text-anchor="middle">Napa/NorCal</text>
+
+      <!-- "You" marker -->
+      <circle cx="435" cy="400" r="5" fill="white"/>
+      <text x="460" y="403" font-size="10" fill="#7C3AED" font-weight="700">← HQ (You)</text>
+    </svg>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#DC2626"></div>Critical priority (Houston HQ)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div>High priority (Central / West)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>West region</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1E6FFA"></div>Southeast / East</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7C3AED;width:8px;height:8px"></div>Your base</div>
+    </div>
+    <div class="map-note">Dashed rings = highest Glean pilot potential. Star icons = verified star performers. NYC/Boston shown with dashed ring = building market (Patrick Carroll from scratch).</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════ DATA ═══════════════
+const REPS = [
+  {n:"Lucas Marquardt",i:"LM",t:"SVP of Sales",g:"Minneapolis, MN",r:"central",yr:6.5,bg:"Presidio Area Director Midwest → CTS VP Sales",star:true,ecs:false,glean:85,score:97,p:"critical",
+   certs:["C-Suite Selling","IT Strategy","National Sales Mgmt"],hot:["C-Suite Selling"],
+   ins:"Already running a CXO executive engagement program — frame your AI practice as its engine. Minneapolis-based, phone-first for first 30 days.",
+   act:"Lead opening: 'I'm the AI practice arm of the CXO program you've already built.' Show closed pipeline in 30 days."},
+  {n:"Phil Wilhelm",i:"PW",t:"Area VP Sales – Central",g:"Austin, TX",r:"central",yr:2,bg:"Fortinet VP Sales national → SHI GM + Top Gun Founder → CPA + Derivatives Trader",star:false,ecs:false,glean:80,score:93,p:"critical",
+   certs:["Certified Public Accountant"],hot:["Certified Public Accountant"],
+   ins:"Former CPA + derivatives trader — stress-tests ROI numbers reflexively. Founded SHI Top Gun & War College programs (culture-builder). Managed overlay teams at Fortinet; knows productive vs. parasitic. Joined month of PE close.",
+   act:"First meeting: bring the Glean Forrester ROI model ($15.6M NPV, 141% ROI). Frame AI motion as team elevation. Show closed pipeline in 30 days."},
+  {n:"Amy Serafin",i:"AS",t:"Area VP Sales – West",g:"San Diego, CA",r:"west",yr:1.75,bg:"SHI Regional VP San Diego (12.9 yrs total)",star:false,ecs:false,glean:80,score:90,p:"critical",
+   certs:["CRM","Business Development","Cloud Computing"],hot:[],
+   ins:"13 years at SHI, rose to Regional VP. Just absorbed ECS acquisition — 6 new reps who don't know ATG motion yet. Your West visit has an integration component as much as enablement.",
+   act:"Frame West visit as ECS integration support. Provide an AI narrative the new ECS team can carry to SoCal accounts."},
+  {n:"Kyle Perettine",i:"KP",t:"Director, Southeast",g:"Miami, FL",r:"east",yr:5.1,bg:"Citrix FSM (254% 2020, 195% 2019, Americas Rep of Year)",star:false,ecs:false,glean:75,score:87,p:"critical",
+   certs:["Circle of Excellence 2019 & 2020","Americas Digital Sales Rep of Year"],hot:["Circle of Excellence 2019 & 2020"],
+   ins:"Elite Citrix performer. Flat structure — 8 ICs report directly with no middle managers. Thinks in platform narratives. Needs force multiplier, not oversight.",
+   act:"Bring him one executive relationship play he can activate immediately."},
+  {n:"Hunter Wright",i:"HW",t:"Sales Director, Southwest",g:"Austin, TX",r:"central",yr:0.5,bg:"SHI TOLA Enterprise Director → SHI Texas DSM 9+ yrs",star:false,ecs:false,glean:80,score:81,p:"critical",
+   certs:["Leading Inclusive Teams"],hot:[],
+   ins:"6 months at ATG. Still establishing account relationships. Your AI motion can be part of his first-year win.",
+   act:"Co-sell first, earn trust before running enablement playbooks."},
+  {n:"Kipp Seifert",i:"KS",t:"Regional Sales Director – Central ⚠",g:"St. Louis, MO",r:"central",yr:8.1,bg:"Oracle BI/Analytics → Citrix FSM → SRSsoft Healthcare HCIT",star:false,ecs:false,glean:82,score:88,p:"critical",
+   certs:["Rapid7 Partner Academy"],hot:[],
+   ins:"LISTED AS AM IN ROSTER — actually a Regional Director with 8+ year ATG tenure. Oracle BI background makes data storytelling natural. Healthcare HCIT depth.",
+   act:"URGENT: Confirm his org role with Phil before engaging. Treat as peer director, not an AM."},
+  {n:"Todd Stephens",i:"TS",t:"Gulf South Principal",g:"Mandeville, LA",r:"central",yr:9,bg:"Sparkhound Comm. Dir 8 yrs → Equifax Natl AE 10 yrs → Deutsche Financial",star:false,ecs:false,glean:72,score:77,p:"high",
+   certs:[],hot:[],
+   ins:"9-year ATG veteran. 10 years at Equifax = C-suite relationships in financial data, credit, and risk analytics. Doesn't need product enablement; needs an executive AI narrative to carry.",
+   act:"Give him the CXO AI briefing framing. He'll open doors newer reps can't reach."},
+  {n:"Jeff Versfelt",i:"JV",t:"Account Executive",g:"Dallas, TX",r:"central",yr:2.9,bg:"Okta Director TX+LA → Rubrik RSD → Cisco 11.5 yrs",star:true,ecs:false,glean:96,score:95,p:"critical",
+   certs:["MEDDPICC","Force Management","Okta President's Club","Cisco CSE","CCDA"],hot:["MEDDPICC","Okta President's Club"],
+   ins:"Most elite performer in Central. Former Okta Director for Texas AND Louisiana. 110%+ quota every year across Cisco, Okta, and Rubrik. MEDDPICC trained: come with quantified business case and named economic buyer.",
+   act:"DFW top co-sell priority. His Okta depth + Glean governance = fastest path to $300K+ deals."},
+  {n:"Brandon Brennan",i:"BB",t:"Account Executive",g:"Houston, TX",r:"central",yr:8.5,bg:"Metalogix (Microsoft SharePoint ISV) → Dell AppAssure",star:true,ecs:false,glean:90,score:89,p:"critical",
+   certs:["CyberArk CSP","Nutanix CSE","Nutanix NCSR"],hot:["CyberArk CSP"],
+   ins:"Longest-tenured Houston rep (8.5 yrs). CyberArk CSP makes CISO security objection deflection native. SharePoint ISV background means he understands the enterprise knowledge fragmentation problem Glean solves.",
+   act:"Priority 1 Houston co-sell. Build CyberArk+Glean permissions story together first."},
+  {n:"Colleen Wyzykowski",i:"CW",t:"Senior Account Executive",g:"Minneapolis, MN (MN/ND)",r:"central",yr:3.1,bg:"Varonis Strategic AE 7.1 yrs → Oracle Oil & Gas",star:true,ecs:false,glean:92,score:87,p:"critical",
+   certs:["Varonis Partner University","Zscaler CSP"],hot:["Varonis Partner University"],
+   ins:"She IS the Varonis expert in ATG. Varonis is a core partner in the Glean governance stack. She can close the Varonis side while you close Glean — natural package deal. Explicitly lists AI in her ATG practice areas.",
+   act:"Glean+Varonis data governance bundle. She's the Varonis closer, you're the Glean opener."},
+  {n:"Daniel Guzman",i:"DG",t:"Public Sector Lead",g:"Austin, TX",r:"central",yr:1.6,bg:"Presidio Senior AM → ForeScout Named AM → SHI Gov AE → Dell Public Sector",star:true,ecs:false,glean:80,score:83,p:"critical",
+   certs:["Okta WIC Accreditation","Okta CIC Accreditation","Splunk Accredited","Varonis","Rapid7"],hot:["Okta WIC Accreditation","Okta CIC Accreditation"],
+   ins:"Only rep in the entire org to list AI as a LinkedIn top skill. Okta WIC+CIC = ideal for AI agent governance. Texas DIR contract is the procurement vehicle. 3x President's Club at Presidio.",
+   act:"Day 1 relationship. Gov AI readiness + DIR contract + his Okta certs = government AI wedge."},
+  {n:"Kris Kubelka",i:"KK",t:"Senior Account Executive",g:"Baton Rouge, LA",r:"central",yr:1.8,bg:"Sparkhound Partner+SAE 12.8 yrs → Former CTO + CIO → Equifax Sr. Director",star:true,ecs:false,glean:80,score:83,p:"high",
+   certs:["ITILv3 Foundation"],hot:[],
+   ins:"Former CTO (healthcare startup) AND CIO (pipeline company) before moving into sales. When he walks into a CTO conversation, he has done that job. Gulf South industrial accounts.",
+   act:"Deploy as executive co-presenter in Gulf South CTO/CIO meetings."},
+  {n:"Corbin Orr",i:"CO",t:"Strategic Account Executive",g:"Houston, TX",r:"central",yr:8.4,bg:"Citrix Field Sales Manager, Houston Named Accounts",star:false,ecs:false,glean:80,score:82,p:"high",
+   certs:["CCSP"],hot:["CCSP"],
+   ins:"'Strategic' title = largest Houston accounts. CCSP (Certified Cloud Security Professional) is rare for an AE — he can hold his own with CISOs.",
+   act:"CISO-access play. Expand his existing security conversations into AI governance territory."},
+  {n:"Michael Karry",i:"MK",t:"Account Executive",g:"Frisco, TX (DFW+OK)",r:"central",yr:1.3,bg:"Rapid7 Enterprise AE 187% President's Club → Palo Alto Networks 2.5 yrs",star:false,ecs:false,glean:88,score:84,p:"high",
+   certs:["Rapid7 Partner Academy"],hot:[],
+   ins:"Palo Alto + Rapid7 vendor pedigree. Explicitly lists AI as a focus area. 187% President's Club at Rapid7. Already selling the security+AI story.",
+   act:"Quick activation. Arm him with Glean tools and measure results."},
+  {n:"TJ Brown",i:"TB",t:"Account Executive",g:"Houston, TX",r:"central",yr:3.3,bg:"Citrix FSM Houston Named → Gartner AE Large Enterprise",star:false,ecs:false,glean:80,score:79,p:"high",
+   certs:["Advanced Sales Certificate","Varonis Partner University"],hot:[],
+   ins:"Adjunct Professor at UH Sales Excellence Institute — thought leader and internal multiplier. Gartner background = business-case-first selling. Win him and he'll teach your AI motion organically.",
+   act:"Lead with Forrester ROI data. Win him as internal champion."},
+  {n:"Quinn Reckmeyer",i:"QR",t:"Account Manager",g:"Dallas, TX",r:"central",yr:7.5,bg:"TrendKite (PR analytics SaaS) → Ethicon Medical Device (#1 company-wide)",star:false,ecs:false,glean:78,score:80,p:"high",
+   certs:["Varonis Partner University","Rapid7 Partner Academy"],hot:[],
+   ins:"7.5 yr ATG veteran. Ranked #1 out of 72 reps at Ethicon first full year. Clifton Strengths: Achiever, Competition, Maximizer.",
+   act:"Gamify the Glean co-sell. 'Be the first DFW rep to close a Glean deal' is the activation hook."},
+  {n:"April Rider",i:"AR",t:"Account Executive",g:"Round Rock, TX",r:"central",yr:0.3,bg:"Gartner Senior AE 4.8 yrs → Dell Technologies 7.3 yrs",star:false,ecs:false,glean:78,score:74,p:"high",
+   certs:["Account Management","Salesforce.com"],hot:[],
+   ins:"Former Dell + Gartner — shares your Dell background directly. LinkedIn headline: 'Building trusted partnerships with state & local government.'",
+   act:"Dell peer intro framing shortens trust-building by months. Gov AI co-sell with Guzman."},
+  {n:"Kyle Bryan",i:"KB",t:"Account Executive",g:"Frisco, TX",r:"central",yr:0.1,bg:"Cato Networks Regional Dir → SHI Regional VP Enterprise → Fortinet Director Named Enterprise",star:false,ecs:false,glean:82,score:72,p:"high",
+   certs:["VMware Sales Professional","Fortinet NSE3"],hot:[],
+   ins:"1 month at ATG. Former SHI Regional VP and Fortinet Director — significantly over-leveled for standard AE role. Very high ceiling once settled.",
+   act:"Understand his role intent first. Then deploy his Fortinet/security depth."},
+  {n:"Chris Cooley",i:"CC",t:"Account Executive",g:"Kansas City, MO",r:"central",yr:1.8,bg:"Fortinet Named Enterprise AM → DisruptOps (cloud governance) → SpiderOak (data privacy) → Venture360 (VC)",star:false,ecs:false,glean:82,score:76,p:"high",
+   certs:["Rapid7 Partner Academy","Zscaler CSP","Nutanix NCSR"],hot:["Zscaler CSP"],
+   ins:"IAM is his #1 LinkedIn skill. Worked at cloud governance startup and data privacy company — a decade in the AI governance adjacent space before it was called that. Most entrepreneurially-minded rep in the org.",
+   act:"Engage on Year 2 platform IP build. His governance + startup DNA is rare."},
+  {n:"Larry Lombas",i:"LL",t:"Gulf South Principal",g:"Mandeville, LA",r:"central",yr:6.9,bg:"Palo Alto Networks Named AM → VENYU Solutions (cloud/DR) → EMC Enterprise Sales",star:false,ecs:false,glean:72,score:72,p:"high",
+   certs:["Data Center","Disaster Recovery","Cloud Computing"],hot:[],
+   ins:"6.9 yr ATG veteran. Palo Alto Named AM background = deep PANW relationship knowledge. Gulf Coast energy market with 20+ years IT experience.",
+   act:"Palo Alto+Glean governance story. His PANW background bridges the combined security narrative."},
+  {n:"Cody Zavala",i:"CZ",t:"Account Manager",g:"Houston, TX",r:"central",yr:2.3,bg:"HYCU Senior Enterprise AE → Nutanix Commercial AE",star:false,ecs:false,glean:70,score:67,p:"medium",
+   certs:["AWS Educate","Nutanix NCSR 2022"],hot:[],
+   ins:"HYCU background = SaaS data protection for Okta, Salesforce, Jira, Confluence — the exact app stack Glean connects.",
+   act:"Group enablement. His SaaS protection background makes the Glean connector story intuitive."},
+  {n:"Rob Brickweg",i:"RB",t:"Account Manager (MN/SD)",g:"Minneapolis, MN",r:"central",yr:3.2,bg:"Citrix Corporate AM → Dell Commercial AE → SHI AE 6.9 yrs",star:false,ecs:false,glean:68,score:65,p:"medium",
+   certs:["Varonis Partner University"],hot:[],
+   ins:"Covers MN/SD — same city as Lucas Marquardt. Standard VAR pedigree. Engage via Lucas as warm intro.",
+   act:"Lucas proximity intro. Research specific MN/SD accounts before 1:1."},
+  {n:"Elizabeth Green",i:"EG",t:"Account Executive",g:"Austin, TX",r:"central",yr:1.8,bg:"Gartner AE 3 yrs → SHI 7.8 yrs (Top Gun 2017)",star:false,ecs:false,glean:72,score:65,p:"medium",
+   certs:["Varonis Partner University"],hot:[],
+   ins:"SHI Top Gun 2017 + Gartner = achiever with business-case selling fluency. Engage via TJ Brown warm intro.",
+   act:"TJ Brown intro. Check Austin account overlap for Glean ICP targets."},
+  {n:"Sarah Ballew",i:"SB",t:"Account Executive",g:"Austin, TX",r:"central",yr:1.4,bg:"Cohesity Senior AE → SHI 11.8 yrs",star:false,ecs:false,glean:70,score:63,p:"medium",
+   certs:[],hot:[],
+   ins:"Cohesity = cloud data management/protection — adjacent to Glean's data governance story. New to ATG (Dec 2024), still onboarding.",
+   act:"Group enablement first. Track Austin accounts for Glean ICP targets."},
+  // WEST
+  {n:"Trevor Gibb",i:"TG",t:"Territory Account Manager",g:"Salt Lake City, UT",r:"west",yr:3.3,bg:"Aviatrix RSM (top West) → Okta RSM Enterprise → Domo (5 promotions) → Mixpanel ($2.1M ACV, 163%)",star:true,ecs:false,glean:94,score:93,p:"critical",
+   certs:["CyberArk PAM CSP","MEDDPICC","SPIN Selling","Okta","Varonis","Rapid7","Nutanix"],hot:["CyberArk PAM CSP","MEDDPICC"],
+   ins:"Single most impressive IC in the entire ATG organization. 152% quota 2025, 133% 2024. Every prior role: top performer. MEDDPICC trained AND CyberArk PAM cert. Salt Lake City covering Rockies/Desert.",
+   act:"Priority 1 West. Brief him once on Glean and he'll close faster than anyone. MEDDPICC-structured business case only."},
+  {n:"Tamara Crawford",i:"TC",t:"Senior Client Executive",g:"San Diego, CA",r:"west",yr:0.1,bg:"Dell Large Enterprise AI Factory + NVIDIA GPU (5.4 yrs) → Cisco $100M Collaboration portfolio (11+ yrs, #1 regionally)",star:true,ecs:true,glean:88,score:89,p:"critical",
+   certs:["CCNA","CDA","Cisco certs"],hot:["CCNA"],
+   ins:"Hidden star of ECS acquisition. 11+ years at Cisco (#1 regionally, $150M+ revenue), then 5 years at Dell AI Factory and NVIDIA platforms. Explicit AI transformation specialist. One month at ATG — almost certainly doesn't have the Glean narrative yet.",
+   act:"SoCal immediate priority. Get her into CXO meetings — she has enterprise credibility, you have the Glean story."},
+  {n:"Kristin Mihalik",i:"KM",t:"Account Executive",g:"San Diego, CA",r:"west",yr:1.5,bg:"SHI Enterprise AE San Diego 10.9 yrs — #1 Security Seller FY23, #2 Rep FY23, 6 consecutive MVP years",star:true,ecs:false,glean:88,score:88,p:"critical",
+   certs:["Account Management","#1 Security Seller FY23"],hot:["#1 Security Seller FY23"],
+   ins:"Most decorated SHI alumna in the West team — 6 consecutive MVP years, #1 Security Seller FY23, #2 rep company-wide. Elite enterprise seller who knows how to close security-adjacent deals at scale.",
+   act:"SoCal co-sell alongside Crawford. Security pedigree + Glean governance = natural partnership."},
+  {n:"Kevin Roof",i:"KR",t:"Regional Director – Rockies/Desert",g:"Denver, CO",r:"west",yr:8.9,bg:"Ivanti Senior AE Majors → HP Strategic Sales (EUC/VDI) → LeftHand Networks storage",star:false,ecs:false,glean:85,score:86,p:"critical",
+   certs:["Virtualization","Storage","Solution Selling"],hot:[],
+   ins:"8.9 year ATG veteran — Kevin IS the Rockies market for Alchemy. HP End User Computing background is directly relevant to the digital workspace + Glean productivity story.",
+   act:"Denver is your fastest Glean pilot market. Kevin's relationships are the launch pad."},
+  {n:"Bob Richman",i:"BR",t:"Territory Account Manager",g:"Denver, CO",r:"west",yr:0.8,bg:"Okta Account Executive Denver 3.1 yrs → Nexthink Enterprise AE → Dell EMC Data Center AE CO",star:false,ecs:false,glean:88,score:81,p:"high",
+   certs:["Rapid7","Varonis","Nutanix NCSR","Rubrik RCDP"],hot:[],
+   ins:"Former Okta AE in Denver for 3+ years — identity relationships in Colorado market aligning directly with Glean's security story.",
+   act:"Glean + Okta identity story. His Denver Okta relationships are an immediate market entry point alongside Trevor."},
+  {n:"Gaddiel Mier",i:"GM",t:"Account Executive (ECS)",g:"SoCal / Irvine area",r:"west",yr:0.1,bg:"ECS Account Executive 3.7 yrs → Irvine Company Sr. Dir IT Infrastructure 16 yrs → Pacific Life, WFS Financial",star:false,ecs:true,glean:82,score:78,p:"high",
+   certs:["CYBERFORCE Defender","Palo Alto PSE Strata Professional","HPE Sales Certified"],hot:["Palo Alto PSE Strata Professional"],
+   ins:"Like Kubelka, a former Sr. Director IT (16 yrs at Irvine Company, 600+ sites). Implemented Zero Trust with Palo Alto at scale. Deep SoCal enterprise relationships.",
+   act:"SoCal enterprise co-sell. CIO-level credibility + Palo Alto PSE cert = executive AI governance conversation."},
+  {n:"Victoria Lewkowitz",i:"VL",t:"Account Executive",g:"Phoenix, AZ (Desert States)",r:"west",yr:1.1,bg:"SHI Public Sector AE Phoenix 2.9 yrs — Arizona Local Government",star:false,ecs:false,glean:78,score:72,p:"high",
+   certs:["Okta CIC Accreditation","Okta WIC Accreditation","DGX AI Competency (NVIDIA)","Varonis","Hitachi Solution Selling"],hot:["DGX AI Competency (NVIDIA)","Okta WIC Accreditation"],
+   ins:"NVIDIA DGX AI Competency cert — the only formal AI infrastructure cert in the entire org. Harvard BA in Government. Arizona gov territory. Okta WIC+CIC accreditations.",
+   act:"AI governance play for Arizona government accounts. Her DGX AI cert makes her uniquely credible."},
+  {n:"Mitchell Mery",i:"MM",t:"Account Executive",g:"San Diego, CA",r:"west",yr:1.8,bg:"phData Territory Director (Snowflake partner) → EVOTEK Account Director → SHI Microsoft Specialist 9.5 yrs",star:false,ecs:false,glean:82,score:74,p:"high",
+   certs:["Enterprise Software","Cloud Computing"],hot:[],
+   ins:"phData is a Snowflake-focused data consultancy — he understands the data platform story Glean needs underneath it. SHI Microsoft Specialist tenure = M365 + Snowflake + Glean bundle.",
+   act:"Snowflake+Glean bundle play. His phData background makes the data-to-AI-search story intuitive."},
+  {n:"Van Cain",i:"VC",t:"Account Executive",g:"Napa, CA (Northern California)",r:"west",yr:1.8,bg:"Gartner Senior AE → 66degrees Enterprise AE West (Google Cloud Premier Partner) → Rackspace Google AE → SHI 7.2 yrs",star:false,ecs:false,glean:78,score:72,p:"high",
+   certs:["Google Cloud Sales Credential","Microsoft Certified Professional","Varonis"],hot:["Google Cloud Sales Credential"],
+   ins:"66degrees = Google Cloud Premier Partner. GCP credential + multi-cloud experience. Napa/NorCal covers enterprise wine country, Bay Area spillover, Nevada.",
+   act:"Google Cloud + Glean integration story for NorCal enterprise accounts."},
+  {n:"Luke Holtz",i:"LH",t:"Account Executive",g:"Seattle, WA",r:"west",yr:1.6,bg:"Softchoice District Sales Leader Seattle 9 yrs → 2x President's Club",star:false,ecs:false,glean:70,score:65,p:"medium",
+   certs:["2x President's Club"],hot:[],
+   ins:"9 years at Softchoice in Seattle — genuine depth in Pacific Northwest, ATG's only presence there.",
+   act:"Pacific Northwest anchor. Group AI enablement, then 1:1 on PNW enterprise priorities."},
+  {n:"Lauren Wong",i:"LW",t:"Account Executive (ECS)",g:"Los Angeles, CA",r:"west",yr:0.1,bg:"ECS Account Executive SoCal 3 yrs → Oracle NetSuite North America #1 team",star:false,ecs:true,glean:72,score:67,p:"medium",
+   certs:["Pure Storage","HPE","Zerto","Prompt Design in Vertex AI (Google)"],hot:["Prompt Design in Vertex AI (Google)"],
+   ins:"Google Vertex AI Prompt Design cert — hands-on AI tooling experience. Girls Who Code alumna + advisor.",
+   act:"LA ECS integration. Her Vertex AI cert makes her a natural early AI enablement adopter."},
+  {n:"Kady Young",i:"KY",t:"Account Executive (ECS)",g:"Santa Monica / LA, CA",r:"west",yr:3,bg:"ECS Enterprise AE 3 yrs → Augtera Networks → Forest River Inc. 11.7 yrs (7 top-performer years)",star:false,ecs:true,glean:68,score:65,p:"medium",
+   certs:["Google Cloud Platform","IT Consulting"],hot:[],
+   ins:"Explicitly focuses on aerospace as a vertical — a niche with strong AI/ML and security requirements ATG doesn't currently address. ECS carry-over with SoCal infrastructure relationships.",
+   act:"Aerospace AI infrastructure wedge. Her niche + ATG security partners = compelling compliance + readiness story."},
+  {n:"Michael Foley",i:"MF",t:"Account Executive (ECS)",g:"Los Angeles, CA",r:"west",yr:0.1,bg:"ECS Account Executive 6.4 yrs → ECS Sales Ops & Inside Sales (14.8 yrs total at ECS)",star:false,ecs:true,glean:65,score:62,p:"medium",
+   certs:["HP Storage","Microsoft","Fortinet","Rubrik","Nutanix","VMware","Veeam"],hot:[],
+   ins:"Nearly 15 years at ECS — institutional memory of every SoCal ECS account relationship.",
+   act:"ECS account intel source. Use his 15-year ECS map to identify SoCal Glean ICP targets."},
+  {n:"Evan Harrison",i:"EH",t:"Account Manager",g:"Denver, CO",r:"west",yr:1.6,bg:"Darktrace Enterprise AE (AI-native cybersecurity) → CircleCI SDR III (3 promotions)",star:false,ecs:false,glean:72,score:64,p:"medium",
+   certs:["Rapid7 Partner Academy"],hot:[],
+   ins:"Darktrace is an AI-native security company — he's already sold AI-driven security solutions. That mental model makes the Glean AI story intuitive.",
+   act:"Group enablement. His Darktrace AI security experience makes the Glean governance pitch natural."},
+  // EAST
+  {n:"Austin Baker",i:"AB",t:"Enterprise Account Executive",g:"Atlanta, GA",r:"east",yr:3.4,bg:"SecurEnds VP Sales (first employee, grew to $7.5M ARR) → Stanley Black & Decker IoT → Georgia Tech Guest Lecturer",star:true,ecs:false,glean:82,score:87,p:"critical",
+   certs:["Okta WIC Service Delivery Specialized","BeyondTrust CSP","Nutanix CSR","Harvard Negotiation Mastery"],hot:["Okta WIC Service Delivery Specialized","BeyondTrust CSP"],
+   ins:"First employee at IAM startup he grew to $7.5M ARR. Harvard Negotiation program. ISSA Board member. Okta WIC + BeyondTrust PAM certs = full identity and privileged access stack.",
+   act:"Atlanta priority. IAM startup background + Okta/BeyondTrust certs = CIO-level AI governance conversation ready."},
+  {n:"Patrick Carroll",i:"PC",t:"Account Manager – Tri-State",g:"New York City, NY",r:"east",yr:1,bg:"SHI Enterprise Select AE NYC Named 7.3 yrs — Rookie of Year, 2x Regional MVP",star:false,ecs:false,glean:82,score:81,p:"high",
+   certs:["Business Strategy","Account Management"],hot:[],
+   ins:"Building ATG's Tri-State (NYC) market from scratch. NYC financial services accounts are the biggest Glean ACV opportunity in the entire East team.",
+   act:"NYC priority. Support his market-building with the executive AI narrative — biggest single-market ACV opportunity."},
+  {n:"Patrick Donohue",i:"PD",t:"Territory Manager – Northeast",g:"Boston, MA",r:"east",yr:1.5,bg:"Rapid7 Enterprise Sales Director Central 1.9 yrs → Rapid7 Senior Manager Large Accounts (7 yrs total, managed 7-10 AE teams across 13 states)",star:false,ecs:false,glean:82,score:83,p:"high",
+   certs:["Sales Management","Territory Management"],hot:[],
+   ins:"7 years at Rapid7 managing sales teams. Enterprise Sales Director level. Cybersecurity and detection/response relationships across Northeast.",
+   act:"Northeast cybersecurity accounts. His Rapid7 background makes Glean governance immediately credible."},
+  {n:"Michael Irene",i:"MI",t:"Enterprise Account Executive",g:"Miami, FL",r:"east",yr:2.5,bg:"Varonis Enterprise Sales Director FL → Rubrik Enterprise AE Miami → Citrix Regional Sales Manager",star:false,ecs:false,glean:85,score:82,p:"high",
+   certs:["Account Management","CRM"],hot:[],
+   ins:"Varonis + Rubrik + Citrix = data security, backup, and digital workspace — three key pillars in the Glean security stack.",
+   act:"Varonis+Glean data governance play in South Florida."},
+  {n:"Eldar Bolin",i:"EB",t:"Account Manager",g:"Miami, FL",r:"east",yr:3.4,bg:"Nutanix Enterprise AM Miami → Varonis Enterprise AM Tampa → Citrix Senior Territory Manager",star:false,ecs:false,glean:80,score:78,p:"high",
+   certs:["Nutanix NCSR L1/L2/L3","Spanish fluent"],hot:[],
+   ins:"Varonis background (like Colleen Wyzykowski) means he knows the data classification and governance conversation natively. Nutanix + Varonis + Citrix maps well to infrastructure + AI governance bundle.",
+   act:"Varonis+Glean data governance play. Natural co-sell with Michael Irene in South Florida."},
+  {n:"Kevin Rubin",i:"KR2",t:"Territory Account Manager",g:"Roswell, GA (Atlanta metro)",r:"east",yr:2.8,bg:"IBM Enterprise AE Intelligent Automation/AIOps (11 mo) → Citrix Enterprise Networking Specialist 5.9 yrs",star:false,ecs:false,glean:72,score:70,p:"high",
+   certs:["Nutanix NCSR 2022"],hot:[],
+   ins:"IBM AIOps background — sold AI-driven IT operations solutions. That mental model (AI monitoring, observability, reducing MTTR) translates directly to the Glean AI knowledge management story.",
+   act:"AIOps-to-Glean bridge. Frame Glean as enterprise knowledge observability — he already understands it from IBM."},
+  {n:"Jordan Thompson",i:"JT",t:"Account Executive",g:"Greenville, SC",r:"east",yr:2.6,bg:"Onapsis Enterprise AE (SAP security) → SecurEnds Enterprise AE+Sales Dir (IAM access certification) → Paycom",star:false,ecs:false,glean:75,score:73,p:"high",
+   certs:["Business Development","CRM"],hot:[],
+   ins:"Jordan and Austin Baker both worked at SecurEnds — pre-existing relationship and shared IAM mental model. Natural co-selling pair for the Southeast. Onapsis = SAP security specialist.",
+   act:"Co-sell pair with Austin Baker. Shared SecurEnds DNA = natural teamwork. ERP security accounts underexplored."},
+  {n:"Ryan Murray",i:"RM",t:"Account Executive",g:"New York City / NJ",r:"east",yr:0.8,bg:"SHI 13.9 yrs (Strategic AE NJ → District Sales Manager NYC 10-person team)",star:false,ecs:false,glean:75,score:74,p:"high",
+   certs:["Sales","Account Management"],hot:[],
+   ins:"13.9 years at SHI with NYC/NJ enterprise relationships. Member of 'The Post' (athletes-turned-business-leaders) — executive network beyond traditional tech.",
+   act:"NYC market build alongside Carroll. Executive network + SHI account base = significant untapped CXO access."}
+];
+
+// ═══════════════ STATE ═══════════════
+let currentFilter = { region: 'all', priority: 'all', special: 'all' };
+let currentSearch = '';
+let sortKey = 'score';
+let sortDir = -1;
+let selectedRep = null;
+
+// ═══════════════ HELPERS ═══════════════
+function scoreColor(s) { return s >= 90 ? '#DC2626' : s >= 80 ? '#D97706' : '#059669'; }
+function avClass(p) { return p === 'critical' ? 'av-critical' : p === 'high' ? 'av-high' : 'av-medium'; }
+function regionColor(r) { return r === 'central' ? '#D97706' : r === 'west' ? '#059669' : '#1E6FFA'; }
+function regionLabel(r) { return r === 'central' ? 'Central' : r === 'west' ? 'West' : 'East/SE'; }
+function fmtTenure(yr) { return yr < 1 ? Math.round(yr * 12) + 'mo' : yr.toFixed(1) + 'yr'; }
+
+// ═══════════════ FILTERS ═══════════════
+function applyFilter(type, val, btn) {
+  currentFilter[type] = val;
+  if (type !== 'special') { Object.keys(currentFilter).forEach(k => { if (k !== type) currentFilter[k] = 'all'; }); }
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+function applySearch(val) { currentSearch = val.toLowerCase(); renderTable(); }
+
+function filterReps() {
+  return REPS.filter(r => {
+    if (currentFilter.region !== 'all' && r.r !== currentFilter.region) return false;
+    if (currentFilter.priority !== 'all' && r.p !== currentFilter.priority) return false;
+    if (currentFilter.special === 'star' && !r.star) return false;
+    if (currentFilter.special === 'ecs' && !r.ecs) return false;
+    if (currentFilter.special === 'veteran' && r.yr < 5) return false;
+    if (currentFilter.special === 'new' && r.yr >= 1) return false;
+    if (currentSearch) {
+      const s = (r.n + r.t + r.g + r.bg + r.ins).toLowerCase();
+      if (!s.includes(currentSearch)) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    const av = a[sortKey], bv = b[sortKey];
+    return typeof av === 'string' ? av.localeCompare(bv) * sortDir : (av - bv) * sortDir;
+  });
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = -1; }
+  renderTable();
+}
+
+// ═══════════════ RENDER TABLE ═══════════════
+function renderTable() {
+  const data = filterReps();
+  const body = document.getElementById('roster-body');
+  body.innerHTML = data.map(r => {
+    const sc = scoreColor(r.score);
+    const pct = r.glean;
+    const sel = selectedRep === r.n ? 'selected' : '';
+    return `<tr class="${sel}" onclick="showDetail('${r.n.replace(/'/g,"\\'")}')">
+      <td><div class="rep-name-cell">
+        <div class="avatar ${avClass(r.p)}">${r.i}</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;color:#111827">${r.n}${r.star ? ' <span class="star-icon">⭐</span>' : ''}${r.ecs ? ' <span class="ecs-tag">ECS</span>' : ''}</div>
+        </div>
+      </div></td>
+      <td style="color:#4B5563;font-size:12px">${r.t}</td>
+      <td style="font-size:12px">${r.g}</td>
+      <td style="font-size:12px">${fmtTenure(r.yr)}</td>
+      <td><span style="font-size:11px;font-weight:600;color:${regionColor(r.r)}">${regionLabel(r.r)}</span></td>
+      <td style="font-size:11px;color:#4B5563;max-width:160px;line-height:1.4">${r.bg.substring(0,80)}${r.bg.length>80?'…':''}</td>
+      <td><div class="glean-bar"><div class="gbar"><div class="gfill" style="width:${pct}%;background:${sc}"></div></div><span style="font-size:11px;font-weight:700;color:${sc}">${pct}</span></div></td>
+      <td><span class="score-pill score-${r.p}" style="background:${r.p==='critical'?'#FEE2E2':r.p==='high'?'#FEF3C7':'#D1FAE5'};color:${sc}">${r.score}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════ DETAIL PANEL ═══════════════
+function showDetail(name) {
+  const r = REPS.find(x => x.n === name);
+  if (!r) return;
+  selectedRep = name;
+  const sc = scoreColor(r.score);
+  const panel = document.getElementById('detail-slot');
+  const pColor = r.p === 'critical' ? '#FEE2E2' : r.p === 'high' ? '#FEF3C7' : '#D1FAE5';
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-avatar ${avClass(r.p)}" style="background:${pColor}">${r.i}</div>
+      <div style="flex:1">
+        <div class="detail-name">${r.n}${r.star ? ' ⭐' : ''}${r.ecs ? ' <span class="ecs-tag" style="font-size:11px">ECS</span>' : ''}</div>
+        <div class="detail-role">${r.t}</div>
+        <div class="detail-geo">${r.g} · ${fmtTenure(r.yr)} at ATG · ${regionLabel(r.r)}</div>
+      </div>
+      <div class="detail-score">
+        <div class="detail-score-num" style="color:${sc}">${r.score}</div>
+        <div class="detail-score-label">priority score</div>
+        <div style="margin-top:6px;font-size:11px;font-weight:700;text-transform:uppercase;color:${sc}">${r.p}</div>
+      </div>
+      <button class="detail-close" onclick="closeDetail()">✕ close</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-field"><div class="detail-field-label">Background</div><div class="detail-field-val">${r.bg}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Glean ICP Fit</div><div class="detail-field-val" style="font-size:20px;font-weight:700;color:${sc}">${r.glean}<span style="font-size:12px;color:#6B7280;font-weight:400">/100</span></div></div>
+    </div>
+    <div class="detail-certs">${r.certs.map(c => `<span class="cert-chip${r.hot.includes(c)?' hot':''}">${c}</span>`).join('')}</div>
+    <div class="detail-insight"><strong>Intelligence:</strong> ${r.ins}</div>
+    <div class="detail-action">
+      <div class="detail-action-label">Your Move</div>
+      <div class="detail-action-text">${r.act}</div>
+    </div>`;
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  renderTable();
+}
+function closeDetail() {
+  selectedRep = null;
+  document.getElementById('detail-slot').classList.remove('open');
+  renderTable();
+}
+
+// ═══════════════ STARS ═══════════════
+function buildStars() {
+  const stars = REPS.filter(r => r.star).sort((a,b) => b.score - a.score);
+  document.getElementById('stars-grid').innerHTML = stars.map(r => {
+    const sc = scoreColor(r.score);
+    return `<div class="star-card">
+      <div class="star-card-header">
+        <div class="avatar ${avClass(r.p)}" style="width:44px;height:44px;font-size:14px">${r.i}</div>
+        <div style="flex:1">
+          <div class="star-card-name">${r.n} ⭐${r.ecs ? ' <span class="ecs-tag">ECS</span>' : ''}</div>
+          <div class="star-card-role">${r.t} · ${r.g}</div>
+          <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+            <span style="font-size:11px;font-weight:700;color:${sc};background:${r.p==='critical'?'#FEE2E2':'#FEF3C7'};padding:2px 8px;border-radius:10px">${r.p.toUpperCase()} · ${r.score}</span>
+            <span style="font-size:11px;color:#6B7280">Glean: ${r.glean}/100</span>
+          </div>
+        </div>
+      </div>
+      <div class="star-card-body">
+        <div class="star-card-insight">${r.ins}</div>
+        <div class="star-card-action">${r.act}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════ FINDINGS ═══════════════
+function buildFindings() {
+  const findings = [
+    { title: "9 Org-Chart & Geography Corrections", color: "#DC2626", items: [
+      "Kipp Seifert is listed as an AM but is actually a Regional Sales Director with 8+ year tenure — verify with Phil Wilhelm before engaging.",
+      "Gaddiel Mier (ECS) was Sr. Director IT Infrastructure at Irvine Company for 16 years — former C-level IT leader, not a traditional sales rep.",
+      "Tamara Crawford (ECS) has $150M+ in Cisco revenue and 5 years at Dell AI Factory — most experienced enterprise seller in West, explicit AI specialist.",
+      "Kris Kubelka is a former CTO (healthcare startup) AND CIO (pipeline company) — executive credibility in Gulf South industrial accounts.",
+      "Victoria Lewkowitz covers Phoenix/Desert States — not West Coast as the roster structure implies.",
+      "Eldar Bolin is in Miami/South Florida — not in the Atlanta area as implied by East listing.",
+      "Jordan Thompson is in Greenville, SC — not Atlanta metro.",
+      "Patrick Carroll is building ATG's NYC/Tri-State market from scratch — biggest single-market ACV opportunity in East.",
+      "Minneapolis has 4 reps + SVP Lucas Marquardt: Kipp Seifert (St. Louis), Rob Brickweg (MN/SD), Colleen Wyzykowski (MN/ND). Deserves a dedicated visit."
+    ]},
+    { title: "5 Reps With AI Credentials or Explicit AI Focus", color: "#7C3AED", items: [
+      "Victoria Lewkowitz: NVIDIA DGX AI Competency cert — only formal AI infrastructure cert in the org.",
+      "Lauren Wong: Google Vertex AI Prompt Design cert — hands-on AI tooling experience.",
+      "Daniel Guzman: Lists 'Artificial Intelligence' as a LinkedIn top skill — only rep in org to do so.",
+      "Tamara Crawford: Explicit AI transformation specialist; worked on Dell AI Factory and NVIDIA GPU platforms.",
+      "Kady Young: Mentions AI infrastructure focus specifically in her LinkedIn summary."
+    ]},
+    { title: "6 Reps With Okta Identity Certifications (Critical for Glean Co-Sell)", color: "#059669", items: [
+      "Jeff Versfelt: Former Okta Director for Texas+Louisiana — most senior Okta background in the org.",
+      "Trevor Gibb: Former Okta RSM Enterprise Salt Lake City (134%/119% quota, 3 years).",
+      "Bob Richman: Former Okta Account Executive Denver (3.1 years).",
+      "Daniel Guzman: Okta WIC + CIC Sales Accreditations (both workforce and customer identity).",
+      "Victoria Lewkowitz: Okta WIC + CIC Sales Accreditations.",
+      "Austin Baker: Okta WIC Service Delivery Specialized — implementation-level credential."
+    ]},
+    { title: "ECS Acquisition — 6 New Reps Needing Integration (March 2026)", color: "#D97706", items: [
+      "Tamara Crawford (San Diego): Cisco/Dell AI elite. Highest priority ECS rep — get into CXO meetings immediately.",
+      "Gaddiel Mier (SoCal): Former CIO. Engage as peer executive, not AM. Needs ATG partner story, not training.",
+      "Lauren Wong (LA): Vertex AI cert + Girls Who Code. Natural early AI enablement adopter.",
+      "Michael Foley (LA): 14.8 years total ECS tenure — institutional account intel for SoCal territory mapping.",
+      "Kady Young (Santa Monica): Aerospace vertical specialist — build a dedicated aerospace AI narrative.",
+      "All 6 joined Alchemy in March 2026. First month in ATG motion. Make them feel invested in, not acquired."
+    ]},
+    { title: "Star Co-Sell Pairs — Use These Together", color: "#1E6FFA", items: [
+      "Colleen Wyzykowski + any Glean deal: She's the Varonis closer, you're the Glean opener. Bundle = data governance play.",
+      "Jeff Versfelt + Glean DFW: MEDDPICC trained + Okta Director background = closes faster than any other rep.",
+      "Tamara Crawford + Kristin Mihalik in SoCal: AI specialist + #1 Security Seller. Best SoCal co-sell team.",
+      "Austin Baker + Jordan Thompson in Atlanta: Both worked at SecurEnds — shared IAM DNA, natural co-sellers.",
+      "Trevor Gibb + Bob Richman in Denver: Both former Okta + Trevor's CyberArk PAM cert. Identity-first Rockies pair.",
+      "Daniel Guzman + April Rider in Austin/gov: Both gov-focused, April has Dell shared background with you."
+    ]},
+    { title: "Only Missing Profile", color: "#6B7280", items: [
+      "Trip Leon — Southwest team AM under Hunter Wright. One profile not uploaded out of 43 total roster.",
+      "Search 'Trip Leon Alchemy Technology Group' on LinkedIn. First name is distinctive enough to return unambiguous results.",
+      "Medium priority — Hunter Wright intro is the correct first touchpoint regardless of LinkedIn research.",
+      "98% coverage is otherwise complete across all 42 verified reps."
+    ]}
+  ];
+  document.getElementById('findings-grid').innerHTML = findings.map(f => `
+    <div class="finding-card">
+      <div class="finding-header">
+        <div class="finding-dot" style="background:${f.color}"></div>
+        <div class="finding-title">${f.title}</div>
+      </div>
+      <ul class="finding-list">${f.items.map(item => `
+        <li class="finding-item">
+          <div class="finding-bullet" style="background:${f.color}"></div>
+          <div>${item}</div>
+        </li>`).join('')}
+      </ul>
+    </div>`).join('');
+}
+
+// ═══════════════ TRAVEL ═══════════════
+function buildTravel() {
+  const stops = [
+    { week: "Weeks 1–2 · Anchor", city: "Houston, TX", color: "#DC2626", urgency: 98,
+      why: "HQ. Largest rep cluster — Brandon Brennan, Corbin Orr, TJ Brown, Cody Zavala, Larry Lombas, Todd Stephens, Kris Kubelka (Baton Rouge). Deepest account base for Glean co-sell. Kick off your pipeline audit and deal triage cadence here.",
+      reps: "Brennan (CyberArk CSP), Orr (CCSP), Brown (Gartner/UH Professor), Zavala, Lombas, Kubelka (former CTO)"},
+    { week: "Weeks 2–3 · High", city: "Dallas / Austin, TX", color: "#DC2626", urgency: 92,
+      why: "Jeff Versfelt (Okta Director, MEDDPICC — your DFW star), Quinn Reckmeyer (7.5yr veteran), Michael Karry (Rapid7/PANW), Kyle Bryan (Fortinet Director). Austin adds Hunter Wright, Daniel Guzman, April Rider. Combined 25+ enterprise relationships.",
+      reps: "Versfelt ⭐, Reckmeyer, Karry, Bryan, Wright (director), Guzman, Rider"},
+    { week: "Weeks 4–5 · High", city: "LA / SoCal (ECS Integration)", color: "#D97706", urgency: 88,
+      why: "ECS acquisition integration visit. Tamara Crawford (Cisco/Dell AI elite), Kristin Mihalik (#1 SHI Security Seller), Mitchell Mery (Snowflake/phData), Gaddiel Mier (former CIO), Lauren Wong (Vertex AI cert), Michael Foley (ECS institutional memory). First ATG AI Strategy Director visit to new team.",
+      reps: "Crawford ⭐ (ECS), Mihalik ⭐, Mery, Mier (ECS), Wong (ECS), Foley (ECS)"},
+    { week: "Weeks 5–6 · High", city: "Denver, CO (Rockies)", color: "#D97706", urgency: 84,
+      why: "Kevin Roof (8.9yr ATG veteran — the Rockies market), Trevor Gibb (152% quota 2025, MEDDPICC, CyberArk PAM — single most impressive IC in ATG), Bob Richman (former Okta AE Denver), Evan Harrison (Darktrace AI security). Fastest Glean pilot close potential in the portfolio.",
+      reps: "Roof (regional director), Gibb ⭐ (Trevor), Richman (Okta AE alum), Harrison (Darktrace AI)"},
+    { week: "Weeks 7–8 · Medium", city: "Atlanta, GA", color: "#059669", urgency: 72,
+      why: "Austin Baker (SecurEnds founder VP, Harvard Negotiation, ISSA Board, Okta WIC + BeyondTrust), Kevin Rubin (IBM AIOps background), Jordan Thompson (SecurEnds+Onapsis — Baker co-sell pair). Kyle Perettine in Miami covers SE. Financial services and healthcare verticals.",
+      reps: "Baker ⭐ (IAM startup founder), Rubin (IBM AIOps), Thompson (SecurEnds pair with Baker)"},
+    { week: "Weeks 8–10 · Medium", city: "NYC / Boston", color: "#059669", urgency: 65,
+      why: "Patrick Carroll building Tri-State from scratch (Rookie of Year SHI NYC — biggest ACV opportunity), Ryan Murray (13.9yr SHI, The Post executive network), Patrick Donohue in Boston (Rapid7 7yr manager, Northeast cybersecurity relationships). Highest per-deal ACV potential in entire org.",
+      reps: "Carroll (NYC market build), Murray (SHI NJ/NYC), Donohue (Rapid7 dir — Boston NE)"}
+  ];
+  document.getElementById('travel-timeline').innerHTML = stops.map(s => `
+    <div class="travel-item">
+      <div class="travel-marker">
+        <div class="travel-circle" style="background:${s.color}">${stops.indexOf(s)+1}</div>
+        <div class="travel-line"></div>
+      </div>
+      <div class="travel-content">
+        <div class="travel-week">${s.week}</div>
+        <div class="travel-city">${s.city}</div>
+        <div class="travel-why">${s.why}</div>
+        <div class="travel-reps">Key reps: ${s.reps}</div>
+        <div class="urgency-bar"><div class="urgency-fill" style="width:${s.urgency}%;background:${s.color}"></div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════ TAB SWITCHING ═══════════════
+function switchTab(id) {
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    const ids = ['roster','stars','findings','travel','map'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.view').forEach(v => {
+    v.classList.toggle('active', v.id === 'view-' + id);
+  });
+}
+
+// ═══════════════ INIT ═══════════════
+renderTable();
+buildStars();
+buildFindings();
+buildTravel();
+</script>
+</body>
+</html>
